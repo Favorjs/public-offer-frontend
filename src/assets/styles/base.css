@@ -1,0 +1,58 @@
+/* Global design tokens and resets */
+:root {
+  --primary: #5b7bfe;
+  --primary-dark: #3f5be9;
+  --secondary: #764ba2;
+  --success: #12b886;
+  --text-strong: #0f172a;
+  --text-muted: #475569;
+  --border: #e2e8f0;
+  --surface: #ffffff;
+  --surface-muted: #f8fafc;
+  --shadow-lg: 0 20px 60px rgba(15, 23, 42, 0.12);
+  --shadow-md: 0 12px 36px rgba(15, 23, 42, 0.1);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: var(--text-strong);
+  background: linear-gradient(180deg, #eef2ff 0%, #f8fafc 35%, #ffffff 100%);
+  line-height: 1.6;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  font: inherit;
+}
+
+.page-width {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+}
+

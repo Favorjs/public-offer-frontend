@@ -1,35 +1,20 @@
 <template>
   <div id="app">
-    <router-view />
+    <SiteShell />
   </div>
 </template>
 
 <script>
+import SiteShell from './layouts/SiteShell.vue'
+
 export default {
-  name: 'App'
+  name: 'App',
+  components: { SiteShell }
 }
 </script>
 
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-
-}
-
-
-
-
-body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  line-height: 1.6;
-
-
-}
-
 #app {
   min-height: 100vh;
-
 }
 </style>

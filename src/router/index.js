@@ -1,41 +1,18 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Introduction from '../components/Introduction.vue'
-import Forms from '../components/Forms.vue'
-
-import Submissions from '../components/Submissions.vue'
-
-
-
-
-
+import HomeView from '../views/HomeView.vue'
+import ApplyView from '../views/ApplyView.vue'
+import SubmissionView from '../views/SubmissionView.vue'
 
 const routes = [
- 
-  {
-    path: '/',
-    component: Introduction,
-    children: [
-      {
-        path: '/forms',
-        name: 'Forms',
-        component: Forms
-      },
-     // In your router/index.js
-{
-  path: '/submission/:id',
-  name: 'Submission',
-  component: Submissions,
-  props: true
-},
-      
-    ]
-  }
+  { path: '/', name: 'Home', component: HomeView },
+  { path: '/apply', name: 'Apply', component: ApplyView },
+  { path: '/forms', redirect: '/apply' }, // backward compatibility
+  { path: '/submission/:id', name: 'Submission', component: SubmissionView, props: true }
 ]
 
 const router = createRouter({
   history: createWebHistory(),
   routes
 })
-
 
 export default router
