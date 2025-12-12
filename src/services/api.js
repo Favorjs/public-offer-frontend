@@ -1,8 +1,11 @@
 // api.js
 import axios from 'axios';
 
+const API_BASE_URL =
+  process.env.VUE_APP_API_BASE_URL || 'https://api.tipoffer.apel.com.ng/api';
+
 const api = axios.create({
-  baseURL: 'https://api.tipoffer.apel.com.ng',
+  baseURL: API_BASE_URL,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

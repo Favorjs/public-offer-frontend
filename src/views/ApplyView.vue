@@ -151,7 +151,62 @@
 
       <!-- Bank -->
       <section v-if="currentStep === 3" class="card">
-        <Header icon="💳" title="Bank Details" subtitle="Where proceeds are settled" />
+        <Header icon="💳" title="Bank Details" subtitle="Payment + settlement details" />
+
+        <div class="notice">
+          <p class="notice__title">Kindly pay into any of these accounts only and upload your payment receipt</p>
+          <ul class="notice__list">
+            <li><strong>0013207895</strong> — The Initiates Public Offer — <strong>TAJBank</strong></li>
+            <li><strong>1308546403</strong> — The Initiates Public Offer — <strong>Providus</strong></li>
+          </ul>
+        </div>
+
+        <Field label="Evidence of Payment (Upload Receipt)" required>
+          <input
+            type="file"
+            accept="image/*,application/pdf"
+            @change="onReceiptSelected"
+          />
+          <div v-if="formData.payment_receipt_filename" class="inline muted">
+            Selected: {{ formData.payment_receipt_filename }}
+          </div>
+        </Field>
+
+        <Field
+          v-if="formData.account_type === 'INDIVIDUAL'"
+          label="Individual Signature (Upload)"
+          required
+        >
+          <input type="file" accept="image/*" @change="onSignatureSelected('individual', $event)" />
+          <div v-if="formData.individual_signature_filename" class="inline muted">
+            Selected: {{ formData.individual_signature_filename }}
+          </div>
+        </Field>
+
+        <Field
+          v-else-if="formData.account_type === 'CORPORATE'"
+          label="Corporate Signature (Upload)"
+          required
+        >
+          <input type="file" accept="image/*" @change="onSignatureSelected('corporate', $event)" />
+          <div v-if="formData.corporate_signature_filename" class="inline muted">
+            Selected: {{ formData.corporate_signature_filename }}
+          </div>
+        </Field>
+
+        <Field
+          v-else
+          label="Joint Signature (Upload)"
+          required
+        >
+          <input type="file" accept="image/*" @change="onSignatureSelected('joint', $event)" />
+          <div v-if="formData.joint_signature_filename" class="inline muted">
+            Selected: {{ formData.joint_signature_filename }}
+          </div>
+        </Field>
+
+        <div class="hr" />
+
         <Field label="Bank Name" required>
           <input v-model="formData.bank_name" type="text" placeholder="Bank name" />
         </Field>
@@ -218,6 +273,7 @@ const currentStep = ref(0)
 const isSubmitting = ref(false)
 const isLoadingStockbrokers = ref(false)
 const stockbrokers = ref([])
+const uploadsBusy = ref(false)
 
 const formData = reactive({
   account_type: 'INDIVIDUAL',
@@ -243,7 +299,20 @@ const formData = reactive({
   bvn: '',
   account_number: '',
   branch: '',
-  bank_city: ''
+  bank_city: '',
+
+  // Evidence of payment (receipt upload)
+  payment_receipt: '',
+  payment_receipt_filename: '',
+  payment_receipt_mime: '',
+
+  // Signature uploads
+  individual_signature: '',
+  corporate_signature: '',
+  joint_signature: '',
+  individual_signature_filename: '',
+  corporate_signature_filename: '',
+  joint_signature_filename: ''
 })
 
 const steps = [
@@ -299,7 +368,19 @@ const fetchStockbrokers = async () => {
 }
 
 const persist = () => {
-  localStorage.setItem('publicOfferApplication', JSON.stringify(formData))
+  // Avoid storing large base64 uploads in localStorage (can exceed browser quota)
+  const safe = { ...formData }
+  safe.payment_receipt = ''
+  safe.payment_receipt_filename = ''
+  safe.payment_receipt_mime = ''
+  safe.individual_signature = ''
+  safe.corporate_signature = ''
+  safe.joint_signature = ''
+  safe.individual_signature_filename = ''
+  safe.corporate_signature_filename = ''
+  safe.joint_signature_filename = ''
+
+  localStorage.setItem('publicOfferApplication', JSON.stringify(safe))
 }
 
 const nextStep = () => {
@@ -332,12 +413,32 @@ const submitApplication = async () => {
       return
     }
 
+    if (uploadsBusy.value) {
+      toast.info('Uploading your files… please wait a moment and try again.')
+      return
+    }
+
+    if (!formData.payment_receipt) {
+      toast.error('Please upload your evidence of payment (receipt)')
+      return
+    }
+
+    if (formData.account_type === 'INDIVIDUAL' && !formData.individual_signature) {
+      toast.error('Please upload your individual signature')
+      return
+    }
+    if (formData.account_type === 'CORPORATE' && !formData.corporate_signature) {
+      toast.error('Please upload your corporate signature')
+      return
+    }
+    if (formData.account_type === 'JOINT' && !formData.joint_signature) {
+      toast.error('Please upload your joint signature')
+      return
+    }
+
     const payload = {
       ...formData,
-      dob: new Date(formData.dob).toISOString().split('T')[0],
-      individual_signature: formData.account_type === 'INDIVIDUAL' ? 'SIGNED' : null,
-      corporate_signature: formData.account_type === 'CORPORATE' ? 'SIGNED' : null,
-      joint_signature: formData.account_type === 'JOINT' ? 'SIGNED' : null
+      dob: new Date(formData.dob).toISOString().split('T')[0]
     }
 
     const response = await publicOfferAPI.submit(payload)
@@ -360,6 +461,56 @@ onMounted(() => {
   if (savedData) Object.assign(formData, JSON.parse(savedData))
   fetchStockbrokers()
 })
+
+const readFileAsDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result)
+    reader.onerror = () => reject(new Error('Failed to read file'))
+    reader.readAsDataURL(file)
+  })
+
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024 // 8MB
+
+const onReceiptSelected = async (event) => {
+  const file = event?.target?.files?.[0]
+  if (!file) return
+  if (file.size > MAX_UPLOAD_BYTES) {
+    toast.error('Receipt file is too large. Please upload a file under 8MB.')
+    return
+  }
+
+  uploadsBusy.value = true
+  const dataUrl = await readFileAsDataUrl(file)
+  formData.payment_receipt = dataUrl
+  formData.payment_receipt_filename = file.name
+  formData.payment_receipt_mime = file.type || ''
+  uploadsBusy.value = false
+}
+
+const onSignatureSelected = async (kind, event) => {
+  const file = event?.target?.files?.[0]
+  if (!file) return
+  if (file.size > MAX_UPLOAD_BYTES) {
+    toast.error('Signature file is too large. Please upload a file under 8MB.')
+    return
+  }
+
+  uploadsBusy.value = true
+  const dataUrl = await readFileAsDataUrl(file)
+
+  if (kind === 'individual') {
+    formData.individual_signature = dataUrl
+    formData.individual_signature_filename = file.name
+  } else if (kind === 'corporate') {
+    formData.corporate_signature = dataUrl
+    formData.corporate_signature_filename = file.name
+  } else {
+    formData.joint_signature = dataUrl
+    formData.joint_signature_filename = file.name
+  }
+  uploadsBusy.value = false
+}
 </script>
 
 <style scoped>
@@ -392,6 +543,32 @@ h1 {
 
 .muted {
   color: var(--text-muted);
+}
+
+.notice {
+  border: 1px solid rgba(14, 116, 144, 0.25);
+  background: rgba(14, 116, 144, 0.06);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 1rem;
+}
+
+.notice__title {
+  margin: 0 0 0.5rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.notice__list {
+  margin: 0;
+  padding-left: 1.1rem;
+  color: #0f172a;
+}
+
+.hr {
+  height: 1px;
+  background: var(--border);
+  margin: 1rem 0;
 }
 
 .progress {
