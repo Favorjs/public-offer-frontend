@@ -1,259 +1,427 @@
 <template>
-  <div class="apply">
-    <div class="page-head">
-      <button class="ghost" @click="router.push('/')">← Back to overview</button>
-      <div>
-        <p class="eyebrow">Application</p>
-        <h1>Share Application Form</h1>
-        <p class="muted">Guided steps — save progress automatically.</p>
+  <div class="jotform-page">
+    <!-- Form Header -->
+    <header class="form-header">
+      <div class="form-header__brand">
+        
+        <div>
+          <h1 class="form-header__title">Application Form</h1>
+          <p class="form-header__subtitle">The Initiates PLC Public Offer</p>
+        </div>
       </div>
-    </div>
+      <button class="btn-back" @click="router.push('/')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        Back
+      </button>
+    </header>
 
-    <div class="progress glass">
-      <div class="progress__bar">
-        <div class="progress__fill" :style="{ width: progressWidth }" />
-      </div>
-      <div class="progress__steps">
+    <!-- Progress Steps -->
+    <div class="steps-container">
+      <div class="steps">
         <div
           v-for="(step, index) in steps"
           :key="step.label"
-          class="progress__step"
-          :class="{ active: currentStep === index, done: currentStep > index }"
+          class="step"
+          :class="{
+            'step--active': currentStep === index,
+            'step--done': currentStep > index
+          }"
+          @click="goToStep(index)"
         >
-          <span>{{ index + 1 }}</span>
-          <small>{{ step.label }}</small>
+          <div class="step__number">
+            <svg v-if="currentStep > index" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <span v-else>{{ index + 1 }}</span>
         </div>
+          <span class="step__label">{{ step.label }}</span>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-bar__fill" :style="{ width: progressWidth }"></div>
       </div>
     </div>
 
-    <div class="cards">
-      <!-- Personal -->
-      <section v-if="currentStep === 0" class="card">
-        <Header icon="👤" title="Personal Information" subtitle="Tell us about yourself" />
-        <div class="grid-2">
-          <Field label="Account Type" required>
-            <select v-model="formData.account_type">
+    <!-- Form Card -->
+    <main class="form-card">
+      <!-- Step 1: Personal Information -->
+      <section v-if="currentStep === 0" class="form-section">
+        <div class="section-header">
+          <div class="section-header__icon">👤</div>
+          <div>
+            <h2 class="section-header__title">Personal Information</h2>
+            <p class="section-header__desc">Please provide your personal details</p>
+          </div>
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">Account Type <span class="required">*</span></label>
+            <select v-model="formData.account_type" class="form-input">
               <option value="INDIVIDUAL">Individual</option>
               <option value="CORPORATE">Corporate</option>
               <option value="JOINT">Joint</option>
             </select>
-          </Field>
-          <Field label="Title" required>
-            <select v-model="formData.title">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Title <span class="required">*</span></label>
+            <select v-model="formData.title" class="form-input">
               <option value="MR">Mr</option>
               <option value="MRS">Mrs</option>
               <option value="MISS">Miss</option>
               <option value="OTHERS">Others</option>
             </select>
-            <div v-if="formData.title === 'OTHERS'" class="nested">
-              <input v-model="formData.title_others" type="text" placeholder="Specify title" />
             </div>
-          </Field>
         </div>
 
-        <div class="grid-2">
-          <Field label="Surname" required>
-            <input v-model="formData.surname" type="text" placeholder="Surname" />
-          </Field>
-          <Field label="First Name" required>
-            <input v-model="formData.first_name" type="text" placeholder="First name" />
-          </Field>
+        <div v-if="formData.title === 'OTHERS'" class="form-group">
+          <label class="form-label">Specify Title <span class="required">*</span></label>
+          <input v-model="formData.title_others" type="text" class="form-input" placeholder="Enter your title" />
         </div>
 
-        <Field label="Other Names">
-          <input v-model="formData.other_names" type="text" placeholder="Other names (optional)" />
-        </Field>
-
-        <Field label="Residential Address" required>
-          <textarea v-model="formData.address" rows="3" placeholder="Street, city, state" />
-        </Field>
-
-        <div class="grid-2">
-          <Field label="City" required>
-            <input v-model="formData.city" type="text" placeholder="City" />
-          </Field>
-          <Field label="State" required>
-            <input v-model="formData.state" type="text" placeholder="State" />
-          </Field>
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">Surname <span class="required">*</span></label>
+            <input v-model="formData.surname" type="text" class="form-input" placeholder="Enter surname" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">First Name <span class="required">*</span></label>
+            <input v-model="formData.first_name" type="text" class="form-input" placeholder="Enter first name" />
+          </div>
         </div>
 
-        <div class="grid-2">
-          <Field label="Phone Number" required>
-            <input v-model="formData.phone" type="tel" placeholder="+234 800 000 0000" />
-          </Field>
-          <Field label="Email Address" required>
-            <input v-model="formData.email" type="email" placeholder="you@email.com" />
-          </Field>
+        <div class="form-group">
+          <label class="form-label">Other Names</label>
+          <input v-model="formData.other_names" type="text" class="form-input" placeholder="Enter other names (optional)" />
         </div>
 
-        <div class="grid-2">
-          <Field label="Date of Birth" required>
-            <input v-model="formData.dob" type="date" />
-          </Field>
-          <Field label="Next of Kin" required>
-            <input v-model="formData.next_of_kin" type="text" placeholder="Full name" />
-          </Field>
+        <div class="form-group">
+          <label class="form-label">Residential Address <span class="required">*</span></label>
+          <textarea v-model="formData.address" class="form-input form-textarea" rows="3" placeholder="Enter your full address"></textarea>
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">City <span class="required">*</span></label>
+            <input v-model="formData.city" type="text" class="form-input" placeholder="Enter city" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">State <span class="required">*</span></label>
+            <input v-model="formData.state" type="text" class="form-input" placeholder="Enter state" />
+          </div>
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">Phone Number <span class="required">*</span></label>
+            <input v-model="formData.phone" type="tel" class="form-input" placeholder="+234 800 000 0000" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address <span class="required">*</span></label>
+            <input v-model="formData.email" type="email" class="form-input" placeholder="you@email.com" />
+          </div>
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">Date of Birth <span class="required">*</span></label>
+            <input v-model="formData.dob" type="date" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Next of Kin <span class="required">*</span></label>
+            <input v-model="formData.next_of_kin" type="text" class="form-input" placeholder="Full name of next of kin" />
+          </div>
         </div>
       </section>
 
-      <!-- Investment -->
-      <section v-if="currentStep === 1" class="card">
-        <Header icon="💸" title="Investment Details" subtitle="Choose your allocation" />
-        <div class="pill-grid">
-          <div class="pill"><strong>₦9.50</strong><span class="muted">Price per share</span></div>
-          <div class="pill"><strong>1,000</strong><span class="muted">Minimum shares</span></div>
-          <div class="pill"><strong>1,000</strong><span class="muted">Multiples</span></div>
+      <!-- Step 2: Investment Details -->
+      <section v-if="currentStep === 1" class="form-section">
+        <div class="section-header">
+          <div class="section-header__icon">💰</div>
+          <div>
+            <h2 class="section-header__title">Investment Details</h2>
+            <p class="section-header__desc">Select your share allocation</p>
         </div>
-        <Field label="Number of Shares" required>
+        </div>
+
+        <div class="info-cards">
+          <div class="info-card">
+            <span class="info-card__value">₦9.50</span>
+            <span class="info-card__label">Price per Share</span>
+          </div>
+          <!-- <div class="info-card">
+            <span class="info-card__value">1,000</span>
+            <span class="info-card__label">Minimum Shares</span>
+          </div>
+          <div class="info-card">
+            <span class="info-card__value">1,000</span>
+            <span class="info-card__label">Multiples Of</span>
+          </div> -->
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Number of Shares <span class="required">*</span></label>
           <input
             v-model.number="formData.shares_applied"
             type="number"
             min="1000"
             step="1000"
-            class="lg"
-            placeholder="1000"
+            class="form-input form-input--lg"
+            placeholder="Enter number of shares"
           />
-          <small class="muted">Minimum 1,000 shares in multiples of 1,000</small>
-        </Field>
-        <div class="summary">
-          <div>
-            <p class="muted">Total Investment</p>
-            <h3>₦{{ calculateAmountPayable.toLocaleString() }}</h3>
+          <span class="form-hint">Minimum 1,000 shares in multiples of 1,000</span>
           </div>
-          <div class="muted">{{ formData.shares_applied?.toLocaleString() || 0 }} shares</div>
+
+        <div class="total-box">
+          <div class="total-box__row">
+            <span class="total-box__label">Shares Applied</span>
+            <span class="total-box__value">{{ formData.shares_applied?.toLocaleString() || 0 }}</span>
+          </div>
+          <div class="total-box__divider"></div>
+          <div class="total-box__row total-box__row--main">
+            <span class="total-box__label">Total Amount Payable</span>
+            <span class="total-box__value total-box__value--big">₦{{ calculateAmountPayable.toLocaleString() }}</span>
+          </div>
         </div>
       </section>
 
-      <!-- CSCS -->
-      <section v-if="currentStep === 2" class="card">
-        <Header icon="🏦" title="CSCS Information" subtitle="Settlement details" />
-        <Field label="Stockbroker" required>
-          <select v-model="formData.stockbrokers_id" :disabled="isLoadingStockbrokers">
-            <option value="">{{ isLoadingStockbrokers ? 'Loading...' : 'Select broker' }}</option>
+      <!-- Step 3: CSCS Information -->
+      <section v-if="currentStep === 2" class="form-section">
+        <div class="section-header">
+          <div class="section-header__icon">🏦</div>
+          <div>
+            <h2 class="section-header__title">CSCS Information</h2>
+            <p class="section-header__desc">Settlement and broker details</p>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Stockbroker <span class="required">*</span></label>
+          <select v-model="formData.stockbrokers_id" class="form-input" :disabled="isLoadingStockbrokers">
+            <option value="">{{ isLoadingStockbrokers ? 'Loading stockbrokers...' : 'Select your stockbroker' }}</option>
             <option v-for="broker in stockbrokers" :key="broker.id" :value="broker.id">
               {{ broker.name }} ({{ broker.code }})
             </option>
           </select>
-          <div v-if="isLoadingStockbrokers" class="inline muted">Loading stockbrokers...</div>
-        </Field>
-        <div class="grid-2">
-          <Field label="CSCS Account Number" required>
-            <input v-model="formData.cscs_no" type="text" placeholder="CSCS number" />
-          </Field>
-          <Field label="CHN Number">
-            <input v-model="formData.chn" type="text" placeholder="Clearing House Number" />
-          </Field>
-        </div>
-        <Field v-if="formData.account_type === 'CORPORATE'" label="Contact Person" required>
-          <input v-model="formData.contact_person" type="text" placeholder="Contact person" />
-        </Field>
-      </section>
-
-      <!-- Bank -->
-      <section v-if="currentStep === 3" class="card">
-        <Header icon="💳" title="Bank Details" subtitle="Payment + settlement details" />
-
-        <div class="notice">
-          <p class="notice__title">Kindly pay into any of these accounts only and upload your payment receipt</p>
-          <ul class="notice__list">
-            <li><strong>0013207895</strong> — The Initiates Public Offer — <strong>TAJBank</strong></li>
-            <li><strong>1308546403</strong> — The Initiates Public Offer — <strong>Providus</strong></li>
-          </ul>
         </div>
 
-        <Field label="Evidence of Payment (Upload Receipt)" required>
-          <input
-            type="file"
-            accept="image/*,application/pdf"
-            @change="onReceiptSelected"
-          />
-          <div v-if="formData.payment_receipt_filename" class="inline muted">
-            Selected: {{ formData.payment_receipt_filename }}
-          </div>
-        </Field>
-
-        <Field
-          v-if="formData.account_type === 'INDIVIDUAL'"
-          label="Individual Signature (Upload)"
-          required
-        >
-          <input type="file" accept="image/*" @change="onSignatureSelected('individual', $event)" />
-          <div v-if="formData.individual_signature_filename" class="inline muted">
-            Selected: {{ formData.individual_signature_filename }}
-          </div>
-        </Field>
-
-        <Field
-          v-else-if="formData.account_type === 'CORPORATE'"
-          label="Corporate Signature (Upload)"
-          required
-        >
-          <input type="file" accept="image/*" @change="onSignatureSelected('corporate', $event)" />
-          <div v-if="formData.corporate_signature_filename" class="inline muted">
-            Selected: {{ formData.corporate_signature_filename }}
-          </div>
-        </Field>
-
-        <Field
-          v-else
-          label="Joint Signature (Upload)"
-          required
-        >
-          <input type="file" accept="image/*" @change="onSignatureSelected('joint', $event)" />
-          <div v-if="formData.joint_signature_filename" class="inline muted">
-            Selected: {{ formData.joint_signature_filename }}
-          </div>
-        </Field>
-
-        <div class="hr" />
-
-        <Field label="Bank Name" required>
-          <input v-model="formData.bank_name" type="text" placeholder="Bank name" />
-        </Field>
-        <div class="grid-2">
-          <Field label="BVN" required>
-            <input v-model="formData.bvn" type="text" maxlength="11" placeholder="11-digit BVN" />
-          </Field>
-          <Field label="Account Number" required>
-            <input v-model="formData.account_number" type="text" placeholder="Account number" />
-          </Field>
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">CSCS Account Number <span class="required">*</span></label>
+            <input v-model="formData.cscs_no" type="text" class="form-input" placeholder="Enter CSCS number" />
         </div>
-        <div class="grid-2">
-          <Field label="Branch" required>
-            <input v-model="formData.branch" type="text" placeholder="Branch name" />
-          </Field>
-          <Field label="City" required>
-            <input v-model="formData.bank_city" type="text" placeholder="Branch city" />
-          </Field>
+          <div class="form-group">
+            <label class="form-label">CHN Number</label>
+            <input v-model="formData.chn" type="text" class="form-input" placeholder="Clearing House Number" />
+          </div>
+        </div>
+
+        <div v-if="formData.account_type === 'CORPORATE'" class="form-group">
+          <label class="form-label">Contact Person <span class="required">*</span></label>
+          <input v-model="formData.contact_person" type="text" class="form-input" placeholder="Name of contact person" />
         </div>
       </section>
 
-      <!-- Review -->
-      <section v-if="currentStep === 4" class="card">
-        <Header icon="✅" title="Review & Submit" subtitle="Confirm before submission" />
-        <div class="review">
-          <ReviewBlock title="Personal" :items="personalSummary" />
-          <ReviewBlock title="Investment" :items="investmentSummary" />
-          <ReviewBlock title="CSCS" :items="cscsSummary" />
-          <ReviewBlock title="Bank" :items="bankSummary" />
+      <!-- Step 4: Bank & Payment -->
+      <section v-if="currentStep === 3" class="form-section">
+        <div class="section-header">
+          <div class="section-header__icon">💳</div>
+          <div>
+            <h2 class="section-header__title">Bank & Payment Details</h2>
+            <p class="section-header__desc">Payment information and uploads</p>
+          </div>
+        </div>
+
+        <!-- Payment Notice -->
+        <div class="payment-notice">
+          <div class="payment-notice__header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M12 16v-4M12 8h.01"/>
+            </svg>
+            <strong>Payment Instructions</strong>
+          </div>
+          <p class="payment-notice__text">Kindly pay into any of these accounts only and upload your payment receipt:</p>
+          <div class="payment-accounts">
+            <div class="payment-account">
+              <span class="payment-account__number">0013207895</span>
+              <span class="payment-account__name">The Initiates Public Offer</span>
+              <span class="payment-account__bank">TAJBank</span>
+            </div>
+            <div class="payment-account">
+              <span class="payment-account__number">1308546403</span>
+              <span class="payment-account__name">The Initiates Public Offer</span>
+              <span class="payment-account__bank">Providus</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- File Uploads -->
+        <div class="form-group">
+          <label class="form-label">Evidence of Payment <span class="required">*</span></label>
+          <div class="file-upload" :class="{ 'file-upload--has-file': formData.payment_receipt_filename }">
+            <input type="file" accept="image/*,application/pdf" @change="onReceiptSelected" class="file-upload__input" />
+            <div class="file-upload__content">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+              </svg>
+              <span v-if="formData.payment_receipt_filename" class="file-upload__filename">{{ formData.payment_receipt_filename }}</span>
+              <span v-else class="file-upload__text">Click to upload receipt (Image or PDF)</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">
+            {{ formData.account_type === 'INDIVIDUAL' ? 'Individual' : formData.account_type === 'CORPORATE' ? 'Corporate' : 'Joint' }} Signature <span class="required">*</span>
+          </label>
+          <div class="file-upload" :class="{ 'file-upload--has-file': currentSignatureFilename }">
+            <input type="file" accept="image/*" @change="onSignatureSelected(signatureType, $event)" class="file-upload__input" />
+            <div class="file-upload__content">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 3a2.85 2.85 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+              </svg>
+              <span v-if="currentSignatureFilename" class="file-upload__filename">{{ currentSignatureFilename }}</span>
+              <span v-else class="file-upload__text">Click to upload signature image</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-divider"></div>
+
+        <h3 class="subsection-title">Bank Details for Settlement</h3>
+
+        <div class="form-group">
+          <label class="form-label">Bank Name <span class="required">*</span></label>
+          <input v-model="formData.bank_name" type="text" class="form-input" placeholder="Enter bank name" />
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">Account Number <span class="required">*</span></label>
+            <input v-model="formData.account_number" type="text" class="form-input" placeholder="Enter account number" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">BVN <span class="required">*</span></label>
+            <input v-model="formData.bvn" type="text" maxlength="11" class="form-input" placeholder="11-digit BVN" />
+          </div>
+        </div>
+
+        <div class="form-row form-row--2col">
+          <div class="form-group">
+            <label class="form-label">Branch <span class="required">*</span></label>
+            <input v-model="formData.branch" type="text" class="form-input" placeholder="Branch name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Branch City <span class="required">*</span></label>
+            <input v-model="formData.bank_city" type="text" class="form-input" placeholder="City of branch" />
+          </div>
         </div>
       </section>
+
+      <!-- Step 5: Review -->
+      <section v-if="currentStep === 4" class="form-section">
+        <div class="section-header">
+          <div class="section-header__icon">✅</div>
+          <div>
+            <h2 class="section-header__title">Review & Submit</h2>
+            <p class="section-header__desc">Please verify all information before submitting</p>
+          </div>
     </div>
 
-    <div class="actions">
-      <button class="ghost" :disabled="currentStep === 0" @click="prevStep">Back</button>
-      <button v-if="currentStep < steps.length - 1" class="primary" @click="nextStep">
+        <div class="review-grid">
+          <div class="review-block">
+            <h4 class="review-block__title">Personal Information</h4>
+            <div class="review-block__items">
+              <div class="review-item" v-for="item in personalSummary" :key="item.label">
+                <span class="review-item__label">{{ item.label }}</span>
+                <span class="review-item__value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-block">
+            <h4 class="review-block__title">Investment Details</h4>
+            <div class="review-block__items">
+              <div class="review-item" v-for="item in investmentSummary" :key="item.label">
+                <span class="review-item__label">{{ item.label }}</span>
+                <span class="review-item__value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-block">
+            <h4 class="review-block__title">CSCS Information</h4>
+            <div class="review-block__items">
+              <div class="review-item" v-for="item in cscsSummary" :key="item.label">
+                <span class="review-item__label">{{ item.label }}</span>
+                <span class="review-item__value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-block">
+            <h4 class="review-block__title">Bank Details</h4>
+            <div class="review-block__items">
+              <div class="review-item" v-for="item in bankSummary" :key="item.label">
+                <span class="review-item__label">{{ item.label }}</span>
+                <span class="review-item__value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="review-uploads">
+          <div class="review-upload" v-if="formData.payment_receipt_filename">
+            <span class="review-upload__icon">📄</span>
+            <span>Payment Receipt: {{ formData.payment_receipt_filename }}</span>
+          </div>
+          <div class="review-upload" v-if="currentSignatureFilename">
+            <span class="review-upload__icon">✍️</span>
+            <span>Signature: {{ currentSignatureFilename }}</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button
+          class="btn btn--secondary"
+          :disabled="currentStep === 0"
+          @click="prevStep"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Previous
+        </button>
+
+        <button
+          v-if="currentStep < steps.length - 1"
+          class="btn btn--primary"
+          @click="nextStep"
+        >
         Continue
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
       </button>
+
       <button
         v-else
-        class="success"
+          class="btn btn--success"
         :disabled="isSubmitting"
         @click="submitApplication"
       >
+          <svg v-if="isSubmitting" class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+          </svg>
         {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
       </button>
     </div>
+    </main>
   </div>
 </template>
 
@@ -262,9 +430,6 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { publicOfferAPI } from '../services/api'
-import Header from '../components/ui/SectionHeader.vue'
-import Field from '../components/ui/FormField.vue'
-import ReviewBlock from '../components/ui/ReviewBlock.vue'
 
 const router = useRouter()
 const toast = useToast()
@@ -300,13 +465,9 @@ const formData = reactive({
   account_number: '',
   branch: '',
   bank_city: '',
-
-  // Evidence of payment (receipt upload)
   payment_receipt: '',
   payment_receipt_filename: '',
   payment_receipt_mime: '',
-
-  // Signature uploads
   individual_signature: '',
   corporate_signature: '',
   joint_signature: '',
@@ -319,12 +480,24 @@ const steps = [
   { label: 'Personal' },
   { label: 'Investment' },
   { label: 'CSCS' },
-  { label: 'Bank' },
+  { label: 'Payment' },
   { label: 'Review' }
 ]
 
 const progressWidth = computed(() => `${((currentStep.value + 1) / steps.length) * 100}%`)
 const calculateAmountPayable = computed(() => formData.shares_applied * 9.5)
+
+const signatureType = computed(() => {
+  if (formData.account_type === 'INDIVIDUAL') return 'individual'
+  if (formData.account_type === 'CORPORATE') return 'corporate'
+  return 'joint'
+})
+
+const currentSignatureFilename = computed(() => {
+  if (formData.account_type === 'INDIVIDUAL') return formData.individual_signature_filename
+  if (formData.account_type === 'CORPORATE') return formData.corporate_signature_filename
+  return formData.joint_signature_filename
+})
 
 const personalSummary = computed(() => [
   { label: 'Name', value: `${formData.title} ${formData.surname} ${formData.first_name}` },
@@ -332,7 +505,7 @@ const personalSummary = computed(() => [
   { label: 'City/State', value: `${formData.city}, ${formData.state}` },
   { label: 'Phone', value: formData.phone },
   { label: 'Email', value: formData.email },
-  { label: 'DOB', value: formatDate(formData.dob) },
+  { label: 'Date of Birth', value: formatDate(formData.dob) },
   { label: 'Next of Kin', value: formData.next_of_kin }
 ])
 
@@ -368,7 +541,6 @@ const fetchStockbrokers = async () => {
 }
 
 const persist = () => {
-  // Avoid storing large base64 uploads in localStorage (can exceed browser quota)
   const safe = { ...formData }
   safe.payment_receipt = ''
   safe.payment_receipt_filename = ''
@@ -379,25 +551,130 @@ const persist = () => {
   safe.individual_signature_filename = ''
   safe.corporate_signature_filename = ''
   safe.joint_signature_filename = ''
-
   localStorage.setItem('publicOfferApplication', JSON.stringify(safe))
 }
 
+const goToStep = (index) => {
+  // Allow backward navigation freely; forward navigation only if prior steps valid
+  if (index <= currentStep.value) {
+    currentStep.value = index
+    return
+  }
+  if (index === currentStep.value + 1 && validateStep(currentStep.value)) {
+    currentStep.value = index
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+}
+
 const nextStep = () => {
-  if (currentStep.value < steps.length - 1) {
+  if (currentStep.value < steps.length - 1 && validateStep(currentStep.value)) {
     currentStep.value++
     persist()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 const prevStep = () => {
-  if (currentStep.value > 0) currentStep.value--
+  if (currentStep.value > 0) {
+    currentStep.value--
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 }
 
 const formatDate = (dateString) => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return isNaN(date) ? '' : date.toLocaleDateString('en-GB')
+}
+
+const isEmpty = (val) => !val || !String(val).trim()
+const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email)
+
+const validateStep = (stepIndex) => {
+  const step = stepIndex ?? currentStep.value
+  if (step === 0) {
+    if (formData.title === 'OTHERS' && isEmpty(formData.title_others)) {
+      toast.error('Please specify your title')
+      return false
+    }
+    const required = [
+      { key: 'surname', label: 'Surname' },
+      { key: 'first_name', label: 'First name' },
+      { key: 'address', label: 'Address' },
+      { key: 'city', label: 'City' },
+      { key: 'state', label: 'State' },
+      { key: 'phone', label: 'Phone number' },
+      { key: 'email', label: 'Email' },
+      { key: 'dob', label: 'Date of birth' },
+      { key: 'next_of_kin', label: 'Next of kin' }
+    ]
+    const missing = required.find((f) => isEmpty(formData[f.key]))
+    if (missing) {
+      toast.error(`Please enter your ${missing.label}`)
+      return false
+    }
+    if (!isValidEmail(formData.email)) {
+      toast.error('Please enter a valid email address')
+      return false
+    }
+    if (isNaN(new Date(formData.dob).getTime())) {
+      toast.error('Please enter a valid date of birth')
+      return false
+    }
+    return true
+  }
+
+  if (step === 1) {
+    const shares = Number(formData.shares_applied || 0)
+    if (!shares || shares < 1000 || shares % 1000 !== 0) {
+      toast.error('Shares must be at least 1,000 and in multiples of 1,000')
+      return false
+    }
+    return true
+  }
+
+  if (step === 2) {
+    if (isEmpty(formData.stockbrokers_id)) {
+      toast.error('Please select your stockbroker')
+      return false
+    }
+    if (isEmpty(formData.cscs_no)) {
+      toast.error('Please enter your CSCS account number')
+      return false
+    }
+    if (formData.account_type === 'CORPORATE' && isEmpty(formData.contact_person)) {
+      toast.error('Please enter a contact person')
+      return false
+    }
+    return true
+  }
+
+  if (step === 3) {
+    if (!formData.payment_receipt) {
+      toast.error('Please upload your evidence of payment')
+      return false
+    }
+    const sigField = formData.account_type.toLowerCase() + '_signature'
+    if (!formData[sigField]) {
+      toast.error(`Please upload your ${formData.account_type.toLowerCase()} signature`)
+      return false
+    }
+    const required = [
+      { key: 'bank_name', label: 'Bank name' },
+      { key: 'account_number', label: 'Account number' },
+      { key: 'bvn', label: 'BVN' },
+      { key: 'branch', label: 'Branch' },
+      { key: 'bank_city', label: 'Branch city' }
+    ]
+    const missing = required.find((f) => isEmpty(formData[f.key]))
+    if (missing) {
+      toast.error(`Please enter your ${missing.label}`)
+      return false
+    }
+    return true
+  }
+
+  return true
 }
 
 const getStockbrokerName = (brokerId) => {
@@ -408,31 +685,19 @@ const getStockbrokerName = (brokerId) => {
 const submitApplication = async () => {
   try {
     isSubmitting.value = true
-    if (!formData.dob || isNaN(new Date(formData.dob).getTime())) {
-      toast.error('Please enter a valid date of birth')
-      return
+
+    // Validate all steps before final submit
+    for (let stepIndex = 0; stepIndex <= 3; stepIndex++) {
+      const ok = validateStep(stepIndex)
+      if (!ok) {
+        currentStep.value = stepIndex
+        isSubmitting.value = false
+        return
+      }
     }
 
     if (uploadsBusy.value) {
-      toast.info('Uploading your files… please wait a moment and try again.')
-      return
-    }
-
-    if (!formData.payment_receipt) {
-      toast.error('Please upload your evidence of payment (receipt)')
-      return
-    }
-
-    if (formData.account_type === 'INDIVIDUAL' && !formData.individual_signature) {
-      toast.error('Please upload your individual signature')
-      return
-    }
-    if (formData.account_type === 'CORPORATE' && !formData.corporate_signature) {
-      toast.error('Please upload your corporate signature')
-      return
-    }
-    if (formData.account_type === 'JOINT' && !formData.joint_signature) {
-      toast.error('Please upload your joint signature')
+      toast.info('Uploading files... please wait')
       return
     }
 
@@ -443,7 +708,7 @@ const submitApplication = async () => {
 
     const response = await publicOfferAPI.submit(payload)
     if (response.data?.success) {
-      toast.success('Application submitted')
+      toast.success('Application submitted successfully!')
       localStorage.removeItem('publicOfferApplication')
       router.push(`/submission/${response.data.data.id}`)
     } else {
@@ -470,16 +735,15 @@ const readFileAsDataUrl = (file) =>
     reader.readAsDataURL(file)
   })
 
-const MAX_UPLOAD_BYTES = 8 * 1024 * 1024 // 8MB
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024
 
 const onReceiptSelected = async (event) => {
   const file = event?.target?.files?.[0]
   if (!file) return
   if (file.size > MAX_UPLOAD_BYTES) {
-    toast.error('Receipt file is too large. Please upload a file under 8MB.')
+    toast.error('File too large. Max 8MB allowed.')
     return
   }
-
   uploadsBusy.value = true
   const dataUrl = await readFileAsDataUrl(file)
   formData.payment_receipt = dataUrl
@@ -492,13 +756,11 @@ const onSignatureSelected = async (kind, event) => {
   const file = event?.target?.files?.[0]
   if (!file) return
   if (file.size > MAX_UPLOAD_BYTES) {
-    toast.error('Signature file is too large. Please upload a file under 8MB.')
+    toast.error('File too large. Max 8MB allowed.')
     return
   }
-
   uploadsBusy.value = true
   const dataUrl = await readFileAsDataUrl(file)
-
   if (kind === 'individual') {
     formData.individual_signature = dataUrl
     formData.individual_signature_filename = file.name
@@ -514,233 +776,692 @@ const onSignatureSelected = async (kind, event) => {
 </script>
 
 <style scoped>
-.apply {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+/* ========================================
+   Clean Theme - Solid Colors Only
+   Primary: #2563eb (Blue)
+   Secondary: #107b5f (Teal)
+   ======================================== */
+
+* {
+  box-sizing: border-box;
 }
 
-.page-head {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-}
+.jotform-page {
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+  --secondary: #107b5f;
+  --secondary-dark: #0d6b52;
+  --text-dark: #1f2937;
+  --text-medium: #4b5563;
+  --text-light: #6b7280;
+  --border-color: #e5e7eb;
+  --bg-light: #f9fafb;
+  --bg-white: #ffffff;
+  --success: #059669;
+  --error: #dc2626;
 
-.ghost {
-  align-self: flex-start;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.5rem 0.9rem;
-  cursor: pointer;
-  color: var(--text-muted);
-}
-
-h1 {
-  margin: 0;
-  color: var(--text-strong);
-}
-
-.muted {
-  color: var(--text-muted);
-}
-
-.notice {
-  border: 1px solid rgba(14, 116, 144, 0.25);
-  background: rgba(14, 116, 144, 0.06);
-  border-radius: 12px;
-  padding: 0.9rem 1rem;
-  margin-bottom: 1rem;
-}
-
-.notice__title {
-  margin: 0 0 0.5rem;
-  font-weight: 800;
-  color: #0f172a;
-}
-
-.notice__list {
-  margin: 0;
-  padding-left: 1.1rem;
-  color: #0f172a;
-}
-
-.hr {
-  height: 1px;
-  background: var(--border);
-  margin: 1rem 0;
-}
-
-.progress {
+  min-height: 100vh;
+  background: #f3f4f6;
   padding: 1rem;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-.progress__bar {
-  height: 10px;
-  background: #e2e8f0;
-  border-radius: 999px;
-  overflow: hidden;
-  margin-bottom: 0.75rem;
+@media (min-width: 1024px) {
+  .jotform-page {
+    padding: 2rem;
+    transform: scale(0.9);
+    transform-origin: top center;
+  }
 }
 
-.progress__fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
-  border-radius: 999px;
-  transition: width 0.4s ease;
+/* Header */
+.form-header {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
-.progress__steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+.form-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1 1 auto;
+  min-width: 240px;
+}
+
+.form-header__logo {
+  width: 56px;
+  height: 56px;
+  background: var(--secondary);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.25rem;
+  color: white;
+}
+
+.form-header__title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.form-header__subtitle {
+  margin: 0.25rem 0 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
   gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+ 
+  color: var(--text-medium);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
-.progress__step {
-  padding: 0.5rem;
-  border-radius: 10px;
-  border: 1px dashed var(--border);
+.btn-back:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+/* Steps */
+.steps-container {
+  max-width: 800px;
+  margin: 0 auto 1.5rem;
+  background: var(--bg-white);
+
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+}
+
+.steps {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  flex: 1;
+  min-width: 70px;
+}
+
+.step__number {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-light);
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  transition: all 0.3s;
+}
+
+.step__label {
+  font-size: 0.75rem;
+  color: var(--text-light);
+  font-weight: 500;
   text-align: center;
-  color: var(--text-muted);
+}
+
+.step--active .step__number {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.step--active .step__label {
+  color: var(--primary);
   font-weight: 600;
 }
 
-.progress__step span {
-  display: inline-block;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  color: #0f172a;
-  line-height: 28px;
-  margin-bottom: 0.25rem;
-}
-
-.progress__step.active {
-  border-color: rgba(91, 123, 254, 0.4);
-  color: var(--primary-dark);
-}
-
-.progress__step.active span,
-.progress__step.done span {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
+.step--done .step__number {
+  background: var(--secondary);
+  border-color: var(--secondary);
   color: white;
 }
 
-.progress__step.done {
-  border-style: solid;
+.step--done .step__label {
+  color: var(--secondary);
 }
 
-.cards {
-  display: grid;
-  gap: 1rem;
+.progress-bar {
+  height: 6px;
+  background: var(--bg-light);
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.card {
-  padding: 1.25rem;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  background: white;
-  box-shadow: var(--shadow-md);
+.progress-bar__fill {
+  height: 100%;
+  background: var(--secondary);
+  border-radius: 3px;
+  transition: width 0.4s ease;
 }
 
-.grid-2 {
-  display: grid;
-  gap: 0.9rem;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-}
+/* Form Card */
+.form-card {
+  max-width: 800px;
+  margin: 0 auto;
+  background: var(--bg-white);
 
-.pill-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 0.75rem;
-}
-
-.pill {
-  padding: 0.9rem 1rem;
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-input,
-select,
-textarea {
-  width: 100%;
-  padding: 0.9rem 0.85rem;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  font-size: 1rem;
-  background: #f8fafc;
-}
-
-textarea {
-  resize: vertical;
-}
-
-.nested {
-  margin-top: 0.6rem;
-  padding-left: 0.75rem;
-  border-left: 3px solid var(--primary);
-}
-
-.lg {
-  font-size: 1.3rem;
-  font-weight: 700;
-  text-align: center;
-}
-
-.summary {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(91, 123, 254, 0.08), rgba(118, 75, 162, 0.08));
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.review {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1rem;
-}
-
-.actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  flex-wrap: wrap;
-}
-
-.primary,
-.success {
-  border: none;
-  border-radius: 12px;
-  padding: 0.95rem 1.3rem;
-  color: white;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: var(--shadow-md);
-}
-
-.primary {
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-}
-
-.success {
-  background: linear-gradient(135deg, #12b886, #0ea271);
+  padding: 2rem;
+  border: 1px solid var(--border-color);
 }
 
 @media (max-width: 640px) {
-  .progress__steps {
-    grid-template-columns: repeat(2, 1fr);
+  .form-card {
+    padding: 1.25rem;
+    border-radius: 16px;
+  }
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 2px solid var(--bg-light);
+}
+
+.section-header__icon {
+  width: 48px;
+  height: 48px;
+  background: rgba(16, 123, 95, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.section-header__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--text-dark);
+}
+
+.section-header__desc {
+  margin: 0.25rem 0 0;
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+/* Form Groups */
+.form-group {
+  margin-bottom: 1.25rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.required {
+  color: var(--error);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 10px;
+  font-size: 1rem;
+  color: var(--text-dark);
+  background: var(--bg-white);
+  transition: all 0.2s;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.form-input::placeholder {
+  color: var(--text-light);
+}
+
+.form-input--lg {
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 1.25rem;
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-hint {
+  display: block;
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--text-light);
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-row--2col {
+  flex-wrap: wrap;
+}
+
+.form-row--2col > .form-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.form-divider {
+  height: 1px;
+  background: var(--border-color);
+  margin: 1.5rem 0;
+}
+
+.subsection-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin: 0 0 1rem;
+}
+
+/* Info Cards */
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-card {
+  background: var(--bg-light);
+  border: 1px solid var(--border-color);
+
+  padding: 1rem;
+  text-align: center;
+}
+
+.info-card__value {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.info-card__label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: 0.25rem;
+}
+
+/* Total Box */
+.total-box {
+  background: var(--secondary);
+
+  padding: 1.25rem;
+  color: white;
+}
+
+.total-box__row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.total-box__label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.total-box__value {
+  font-weight: 600;
+}
+
+.total-box__value--big {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.total-box__divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 0.75rem 0;
+}
+
+/* Payment Notice */
+.payment-notice {
+  background: rgba(16, 123, 95, 0.06);
+  border: 1px solid rgba(16, 123, 95, 0.2);
+ 
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.payment-notice__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--secondary);
+  margin-bottom: 0.5rem;
+}
+
+.payment-notice__text {
+  margin: 0 0 1rem;
+  color: var(--text-dark);
+  font-size: 0.9rem;
+}
+
+.payment-accounts {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.payment-account {
+  background: var(--bg-white);
+  border: 1px solid var(--border-color);
+
+  padding: 0.875rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+}
+
+.payment-account__number {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--secondary);
+  font-family: 'Courier New', monospace;
+}
+
+.payment-account__name {
+  color: var(--text-medium);
+  font-size: 0.875rem;
+}
+
+.payment-account__bank {
+  background: var(--secondary);
+  color: white;
+  padding: 0.25rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+/* File Upload */
+.file-upload {
+  position: relative;
+  border: 2px dashed var(--border-color);
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  background: var(--bg-light);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.file-upload:hover {
+  border-color: var(--primary);
+  background: rgba(37, 99, 235, 0.02);
+}
+
+.file-upload--has-file {
+  border-color: var(--secondary);
+  border-style: solid;
+  background: rgba(16, 123, 95, 0.05);
+}
+
+.file-upload__input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-upload__content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-light);
+}
+
+.file-upload__content svg {
+  color: var(--primary);
+}
+
+.file-upload--has-file .file-upload__content svg {
+  color: var(--secondary);
+}
+
+.file-upload__filename {
+  color: var(--secondary);
+  font-weight: 600;
+}
+
+.file-upload__text {
+  font-size: 0.9rem;
+}
+
+/* Review */
+.review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+
+.review-block {
+  background: var(--bg-light);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.review-block__title {
+  margin: 0 0 1rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.review-block__items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.review-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.review-item__label {
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+.review-item__value {
+  color: var(--text-dark);
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.review-uploads {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.review-upload {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  background: rgba(16, 123, 95, 0.1);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: var(--secondary);
+}
+
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid var(--bg-light);
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.9rem 1.5rem;
+ 
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn--secondary {
+  background: var(--bg-light);
+  color: var(--text-medium);
+  border: 1px solid var(--border-color);
+}
+
+.btn--secondary:hover:not(:disabled) {
+  background: var(--border-color);
+}
+
+.btn--secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn--primary {
+  background: var(--primary);
+  color: white;
+}
+
+.btn--primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn--success {
+  background: var(--secondary);
+  color: white;
+}
+
+.btn--success:hover:not(:disabled) {
+  background: var(--secondary-dark);
+}
+
+.btn--success:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .form-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .form-header__brand {
+    justify-content: flex-start;
+  }
+
+  .btn-back {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .steps {
+    gap: 0.5rem;
+    scroll-snap-type: x mandatory;
+  }
+
+  .step__label {
+    display: none;
+  }
+
+  .step {
+    min-width: 90px;
+    scroll-snap-align: start;
+  }
+
+  .steps-container {
+    padding: 1rem;
+  }
+
+  .form-row--2col > .form-group {
+    min-width: 100%;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn {
+    width: 100%;
+  }
+
+  .review-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
-
