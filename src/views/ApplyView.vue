@@ -1655,6 +1655,7 @@ select.form-input {
     min-width: 80%;
     width: 80%;
     flex: 0 0 80%;
+    align-self: center;
   }
 
   .form-input--date {
@@ -1662,6 +1663,8 @@ select.form-input {
     padding: 0.875rem 1rem;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    display: block;
     box-sizing: border-box;
   }
 
