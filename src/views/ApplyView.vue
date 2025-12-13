@@ -1647,17 +1647,28 @@ select.form-input {
   }
 
   /* Date Field Responsive */
+  .form-row--2col {
+    flex-direction: column;
+  }
+
   .form-group--date {
-    min-width: 70%;
+    min-width: 100%;
+    width: 100%;
+    flex: 1 1 100%;
   }
 
   .form-input--date {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 0.875rem 1rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .form-row--2col > .form-group {
     min-width: 100%;
+    width: 100%;
+    flex: 1 1 100%;
   }
 
   .form-row--2col > .form-group:not(.form-group--date) {
