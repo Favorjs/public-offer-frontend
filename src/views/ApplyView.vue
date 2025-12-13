@@ -1652,9 +1652,9 @@ select.form-input {
   }
 
   .form-group--date {
-    min-width: 100%;
-    width: 100%;
-    flex: 1 1 100%;
+    min-width: 80%;
+    width: 80%;
+    flex: 0 0 80%;
   }
 
   .form-input--date {
