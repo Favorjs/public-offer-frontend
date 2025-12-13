@@ -125,10 +125,7 @@
         </div>
 
         <div class="form-row form-row--2col">
-          <div
-            class="form-group"
-            style="width: 80%; max-width: 100%; margin: 0 auto; overflow: hidden; display: block;"
-          >
+          <div class="form-group form-group--date">
             <label class="form-label">Date of Birth <span class="required">*</span></label>
             <input v-model="formData.dob" type="date" class="form-input form-input--date" />
           </div>
@@ -1648,24 +1645,32 @@ select.form-input {
     height: 4px;
     border-radius: 2px;
   }
-
-  /* Date Field Responsive */
-  .form-row--2col {
+ /* Date Field Responsive */
+ .form-row--2col {
     flex-direction: column;
   }
 
   .form-group--date {
-    min-width: 80%;
-    width: 80%;
-    flex: 0 0 80%;
+    width: 100%;
+    flex: 1 1 100%;
   }
 
   .form-input--date {
     font-size: 16px; /* Prevents zoom on iOS */
-    padding: 0.875rem 1rem;
+    padding: 0.75rem 0.875rem;
     width: 100%;
     max-width: 100%;
+    min-width: 0;
+    display: block;
     box-sizing: border-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .form-input--date::-webkit-calendar-picker-indicator {
+    margin-left: 0;
+    padding: 0;
+    cursor: pointer;
   }
 
   .form-row--2col > .form-group {
@@ -1677,7 +1682,6 @@ select.form-input {
   .form-row--2col > .form-group:not(.form-group--date) {
     margin-top: 0;
   }
-
   .form-actions {
     flex-direction: column;
   }
