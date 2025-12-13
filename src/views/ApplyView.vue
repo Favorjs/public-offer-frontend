@@ -125,7 +125,7 @@
         </div>
 
         <div class="form-row form-row--2col">
-          <div class="form-group form-group--date">
+          <div class="form-group ">
             <label class="form-label">Date of Birth <span class="required">*</span></label>
             <input v-model="formData.dob" type="date" class="form-input form-input--date" />
           </div>
@@ -1655,7 +1655,6 @@ select.form-input {
     min-width: 80%;
     width: 80%;
     flex: 0 0 80%;
-    align-self: center;
   }
 
   .form-input--date {
@@ -1663,8 +1662,6 @@ select.form-input {
     padding: 0.875rem 1rem;
     width: 100%;
     max-width: 100%;
-    min-width: 0;
-    display: block;
     box-sizing: border-box;
   }
 
