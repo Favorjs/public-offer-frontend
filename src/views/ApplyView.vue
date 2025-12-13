@@ -1648,7 +1648,7 @@ select.form-input {
 
   /* Date Field Responsive */
   .form-group--date {
-    min-width: 100%;
+    min-width: 70%;
   }
 
   .form-input--date {
