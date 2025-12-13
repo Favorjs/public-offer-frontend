@@ -10,9 +10,14 @@
           </div>
         </div>
         <nav class="nav">
-     
-
-          <RouterLink to="/submission/demo" class="nav__link nav__ghost"> Download Sample PDF</RouterLink>
+          <a
+            class="nav__link nav__ghost"
+            href="https://res.cloudinary.com/apelng/image/upload/v1761666927/TIP_PUBLIC_OFFER_cqmqxz.pdf"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Download PDF
+          </a>
         </nav>
       </div>
     </header>
@@ -143,7 +148,7 @@ export default {
   }
 
   .nav {
-    width: 100%;
+    width: 50%;
     overflow-x: auto;
     padding: 0.25rem 0;
     gap: 0.35rem;

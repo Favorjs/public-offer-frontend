@@ -33,8 +33,10 @@ api.interceptors.response.use(
 
 // Public Offer API endpoints
 export const publicOfferAPI = {
-  // Submit application
-  submit: (data) => api.post('/public-offers/applications', data),
+  // Submit application - increased timeout for file uploads and processing
+  submit: (data) => api.post('/public-offers/applications', data, {
+    timeout: 120000 // 2 minutes for file uploads, PDF generation, and email sending
+  }),
   
   // Get applications
   getApplications: (params = {}) => api.get('/public-offers/applications', { params }),
@@ -45,7 +47,8 @@ export const publicOfferAPI = {
   // Download PDF - CORRECTED ENDPOINT
   downloadPDF: (id) => {
     return api.get(`/public-offers/applications/${id}/pdf`, {
-      responseType: 'blob'
+      responseType: 'blob',
+      timeout: 60000 // 1 minute for PDF generation and download
     }).then(response => {
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));

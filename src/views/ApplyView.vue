@@ -169,9 +169,19 @@
             min="1000"
             step="1000"
             class="form-input form-input--lg"
+            :class="{ 'form-input--error': sharesValidationError }"
             placeholder="Enter number of shares"
+            @input="validateSharesInput"
           />
           <span class="form-hint">Minimum 1,000 shares in multiples of 1,000</span>
+          <div v-if="sharesValidationError" class="form-alert form-alert--error">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="12" cy="12" r="10"/>
+              <line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+            {{ sharesValidationError }}
+          </div>
           </div>
 
         <div class="total-box">
@@ -295,7 +305,12 @@
 
         <div class="form-group">
           <label class="form-label">Bank Name <span class="required">*</span></label>
-          <input v-model="formData.bank_name" type="text" class="form-input" placeholder="Enter bank name" />
+          <select v-model="formData.bank_name" class="form-input" :disabled="isLoadingBanks">
+            <option value="">{{ isLoadingBanks ? 'Loading banks...' : 'Select your bank' }}</option>
+            <option v-for="bank in banks" :key="bank.bankCode" :value="bank.bankname">
+              {{ bank.bankname }}
+            </option>
+          </select>
         </div>
 
         <div class="form-row form-row--2col">
@@ -418,7 +433,7 @@
           <svg v-if="isSubmitting" class="spinner" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"/>
           </svg>
-        {{ isSubmitting ? 'Submitting...' : 'Submit Application' }}
+        {{ isSubmitting ? 'Submitting... Please wait' : 'Submit Application' }}
       </button>
     </div>
     </main>
@@ -430,6 +445,7 @@ import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from 'vue-toastification'
 import { publicOfferAPI } from '../services/api'
+import banksData from '../../utils/banks.json'
 
 const router = useRouter()
 const toast = useToast()
@@ -439,6 +455,9 @@ const isSubmitting = ref(false)
 const isLoadingStockbrokers = ref(false)
 const stockbrokers = ref([])
 const uploadsBusy = ref(false)
+const sharesValidationError = ref('')
+const isLoadingBanks = ref(false)
+const banks = ref([])
 
 const formData = reactive({
   account_type: 'INDIVIDUAL',
@@ -701,6 +720,11 @@ const submitApplication = async () => {
       return
     }
 
+    // Show informative message
+    toast.info('Submitting application... This may take a moment while we process your files and generate your PDF.', {
+      timeout: 5000
+    })
+
     const payload = {
       ...formData,
       dob: new Date(formData.dob).toISOString().split('T')[0]
@@ -715,9 +739,44 @@ const submitApplication = async () => {
       throw new Error(response.data?.message || 'Submission failed')
     }
   } catch (error) {
-    toast.error(error.message || 'Error submitting application')
+    // Handle timeout errors specifically
+    if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      toast.error('Request timed out. The server is processing your application. Please check your email for confirmation or try again in a few moments.')
+    } else if (error.response?.status === 413) {
+      toast.error('File size too large. Please ensure files are under 8MB each.')
+    } else if (error.response?.status >= 500) {
+      toast.error('Server error. Please try again in a few moments or contact support.')
+    } else if (error.response?.data?.message) {
+      toast.error(error.response.data.message)
+    } else {
+      toast.error(error.message || 'Error submitting application. Please try again.')
+    }
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const loadBanks = () => {
+  try {
+    isLoadingBanks.value = true
+    // Extract banks from the JSON data structure
+    if (banksData?.data && Array.isArray(banksData.data)) {
+      // Sort banks alphabetically by name for easier selection
+      banks.value = banksData.data.sort((a, b) => {
+        const nameA = a.bankname?.toUpperCase() || ''
+        const nameB = b.bankname?.toUpperCase() || ''
+        return nameA.localeCompare(nameB)
+      })
+    } else {
+      banks.value = []
+      console.warn('Banks data structure is invalid')
+    }
+  } catch (error) {
+    console.error('Error loading banks:', error)
+    toast.error('Failed to load banks list')
+    banks.value = []
+  } finally {
+    isLoadingBanks.value = false
   }
 }
 
@@ -725,6 +784,7 @@ onMounted(() => {
   const savedData = localStorage.getItem('publicOfferApplication')
   if (savedData) Object.assign(formData, JSON.parse(savedData))
   fetchStockbrokers()
+  loadBanks()
 })
 
 const readFileAsDataUrl = (file) =>
@@ -772,6 +832,37 @@ const onSignatureSelected = async (kind, event) => {
     formData.joint_signature_filename = file.name
   }
   uploadsBusy.value = false
+}
+
+const validateSharesInput = () => {
+  const shares = Number(formData.shares_applied)
+  
+  // Clear error if field is empty
+  if (!formData.shares_applied || formData.shares_applied === '') {
+    sharesValidationError.value = ''
+    return
+  }
+  
+  // Check if it's a valid number
+  if (isNaN(shares) || shares <= 0) {
+    sharesValidationError.value = 'Please enter a valid number'
+    return
+  }
+  
+  // Check minimum
+  if (shares < 1000) {
+    sharesValidationError.value = 'Minimum investment is 1,000 shares'
+    return
+  }
+  
+  // Check if it's a multiple of 1000
+  if (shares % 1000 !== 0) {
+    sharesValidationError.value = 'Shares must be in multiples of 1,000 (e.g., 1,000, 2,000, 3,000, etc.)'
+    return
+  }
+  
+  // Clear error if valid
+  sharesValidationError.value = ''
 }
 </script>
 
@@ -1049,6 +1140,21 @@ const onSignatureSelected = async (kind, event) => {
   border-color: var(--primary);
 }
 
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--bg-light);
+}
+
+select.form-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L6 6L11 1' stroke='%234b5563' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  padding-right: 2.5rem;
+}
+
 .form-input::placeholder {
   color: var(--text-light);
 }
@@ -1070,6 +1176,48 @@ const onSignatureSelected = async (kind, event) => {
   margin-top: 0.4rem;
   font-size: 0.8rem;
   color: var(--text-light);
+}
+
+.form-input--error {
+  border-color: var(--error) !important;
+}
+
+.form-input--error:focus {
+  border-color: var(--error) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+}
+
+.form-alert {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-alert--error {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecdd3;
+}
+
+.form-alert svg {
+  flex-shrink: 0;
 }
 
 .form-row {
