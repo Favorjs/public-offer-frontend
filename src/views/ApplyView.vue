@@ -1658,8 +1658,8 @@ select.form-input {
   .form-input--date {
     font-size: 16px; /* Prevents zoom on iOS */
     padding: 0.55rem 0.675rem;
-    width: 80%;
-    max-width: 80%;
+    width: 90%;
+    max-width: 90%;
     min-width: 0;
     display: block;
     box-sizing: border-box;
