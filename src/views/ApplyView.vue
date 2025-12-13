@@ -125,7 +125,10 @@
         </div>
 
         <div class="form-row form-row--2col">
-          <div class="form-group" style="width: 80%; overflow-x: hidden;">
+          <div
+            class="form-group"
+            style="width: 80%; max-width: 100%; margin: 0 auto; overflow: hidden; display: block;"
+          >
             <label class="form-label">Date of Birth <span class="required">*</span></label>
             <input v-model="formData.dob" type="date" class="form-input form-input--date" />
           </div>
