@@ -141,22 +141,35 @@ export default {
 
 @media (max-width: 640px) {
   .topbar__inner {
-    flex-direction: column;
-    align-items: stretch;
     gap: 0.75rem;
     padding: 0.75rem 1rem;
   }
 
+  .brand {
+    min-width: auto;
+    flex: 1;
+  }
+
+  .brand__text {
+    font-size: 0.9rem;
+  }
+
+  .brand__text strong {
+    font-size: 0.95rem;
+  }
+
+  .brand__text small {
+    font-size: 0.75rem;
+  }
+
   .nav {
-    width: 50%;
-    overflow-x: auto;
-    padding: 0.25rem 0;
-    gap: 0.35rem;
+    flex-shrink: 0;
   }
 
   .nav__link {
-    width: 100%;
-    text-align: left;
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+    white-space: nowrap;
   }
 }
 </style>

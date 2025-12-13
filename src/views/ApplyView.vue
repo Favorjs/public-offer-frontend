@@ -125,9 +125,9 @@
         </div>
 
         <div class="form-row form-row--2col">
-          <div class="form-group">
+          <div class="form-group form-group--date">
             <label class="form-label">Date of Birth <span class="required">*</span></label>
-            <input v-model="formData.dob" type="date" class="form-input" />
+            <input v-model="formData.dob" type="date" class="form-input form-input--date" />
           </div>
           <div class="form-group">
             <label class="form-label">Next of Kin <span class="required">*</span></label>
@@ -975,9 +975,9 @@ const validateSharesInput = () => {
   max-width: 800px;
   margin: 0 auto 1.5rem;
   background: var(--bg-white);
-
   padding: 1.25rem;
   border: 1px solid var(--border-color);
+  border-radius: 12px;
 }
 
 .steps {
@@ -987,6 +987,12 @@ const validateSharesInput = () => {
   margin-bottom: 1rem;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.steps::-webkit-scrollbar {
+  display: none;
 }
 
 .step {
@@ -997,6 +1003,7 @@ const validateSharesInput = () => {
   cursor: pointer;
   flex: 1;
   min-width: 70px;
+  position: relative;
 }
 
 .step__number {
@@ -1012,6 +1019,8 @@ const validateSharesInput = () => {
   font-size: 0.875rem;
   color: var(--text-light);
   transition: all 0.3s;
+  position: relative;
+  z-index: 1;
 }
 
 .step__label {
@@ -1019,12 +1028,15 @@ const validateSharesInput = () => {
   color: var(--text-light);
   font-weight: 500;
   text-align: center;
+  transition: all 0.3s;
 }
 
 .step--active .step__number {
   background: var(--primary);
   border-color: var(--primary);
   color: white;
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
 }
 
 .step--active .step__label {
@@ -1562,6 +1574,15 @@ select.form-input {
   to { transform: rotate(360deg); }
 }
 
+/* Date Input Responsive */
+.form-input--date {
+  font-size: 1rem;
+}
+
+.form-group--date {
+  position: relative;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
   .form-header {
@@ -1578,26 +1599,69 @@ select.form-input {
     justify-content: center;
   }
 
+  /* Modernized Mobile Steps */
+  .steps-container {
+    padding: 1rem;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
   .steps {
     gap: 0.5rem;
-    scroll-snap-type: x mandatory;
+    padding: 0.5rem 0;
+    margin-bottom: 1.25rem;
+    justify-content: center;
+  }
+
+  .step {
+    min-width: 50px;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    border-radius: 12px;
+    transition: background 0.2s;
+  }
+
+  .step:hover {
+    background: rgba(37, 99, 235, 0.04);
+  }
+
+  .step--active {
+    background: rgba(37, 99, 235, 0.08);
+  }
+
+  .step__number {
+    width: 44px;
+    height: 44px;
+    font-size: 1rem;
+    flex-shrink: 0;
   }
 
   .step__label {
     display: none;
   }
 
-  .step {
-    min-width: 90px;
-    scroll-snap-align: start;
+  .progress-bar {
+    height: 4px;
+    border-radius: 2px;
   }
 
-  .steps-container {
-    padding: 1rem;
+  /* Date Field Responsive */
+  .form-group--date {
+    min-width: 100%;
+  }
+
+  .form-input--date {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 0.875rem 1rem;
   }
 
   .form-row--2col > .form-group {
     min-width: 100%;
+  }
+
+  .form-row--2col > .form-group:not(.form-group--date) {
+    margin-top: 0;
   }
 
   .form-actions {
