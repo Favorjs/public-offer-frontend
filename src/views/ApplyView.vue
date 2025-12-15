@@ -346,6 +346,36 @@
           </div>
     </div>
 
+        <div class="declaration-box">
+          <h4 class="declaration-title">Declarations</h4>
+          <div class="declaration-list">
+            <label class="declaration-item">
+              <input type="checkbox" v-model="formData.declarations" value="dec_a" />
+              <span>I/We am/are 18 years of age or over.</span>
+            </label>
+            <label class="declaration-item">
+              <input type="checkbox" v-model="formData.declarations" value="dec_b" />
+              <span>I/We note that allotment will only be electronically to the CSCS accounts of allotees and no physical share certificate would be issued.</span>
+            </label>
+            <label class="declaration-item">
+              <input type="checkbox" v-model="formData.declarations" value="dec_c" />
+              <span>I/We note that The Initiates PLC and the Issuing Houses are entitled in their absolute discretion to accept or reject this application.</span>
+            </label>
+            <label class="declaration-item">
+              <input type="checkbox" v-model="formData.declarations" value="dec_d" />
+              <span>I/We attach the amount payable in full on application for the number of ordinary shares in The Initiates PLC.</span>
+            </label>
+            <label class="declaration-item">
+              <input type="checkbox" v-model="formData.declarations" value="dec_e" />
+              <span>I/We agree to accept the same or any smaller number of units in respect of which allotment may be made upon the terms of the Prospectus.</span>
+            </label>
+            <label class="declaration-item">
+              <input type="checkbox" v-model="formData.declarations" value="dec_f" />
+              <span>I/We declare that I/we have read a copy of the Prospectus, issued by the Issuing Houses on behalf of The Initiates PLC.</span>
+            </label>
+          </div>
+        </div>
+
         <div class="review-grid">
           <div class="review-block">
             <h4 class="review-block__title">Personal Information</h4>
@@ -381,6 +411,16 @@
             <h4 class="review-block__title">Bank Details</h4>
             <div class="review-block__items">
               <div class="review-item" v-for="item in bankSummary" :key="item.label">
+                <span class="review-item__label">{{ item.label }}</span>
+                <span class="review-item__value">{{ item.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="review-block">
+            <h4 class="review-block__title">Declarations</h4>
+            <div class="review-block__items">
+              <div class="review-item" v-for="item in declarationsSummary" :key="item.label">
                 <span class="review-item__label">{{ item.label }}</span>
                 <span class="review-item__value">{{ item.value }}</span>
               </div>
@@ -492,7 +532,8 @@ const formData = reactive({
   joint_signature: '',
   individual_signature_filename: '',
   corporate_signature_filename: '',
-  joint_signature_filename: ''
+  joint_signature_filename: '',
+  declarations: []
 })
 
 const steps = [
@@ -531,6 +572,15 @@ const personalSummary = computed(() => [
 const investmentSummary = computed(() => [
   { label: 'Shares Applied', value: formData.shares_applied?.toLocaleString() },
   { label: 'Amount Payable', value: `₦${calculateAmountPayable.value?.toLocaleString()}` }
+])
+
+const declarationsSummary = computed(() => [
+  { label: '18+ age confirmation', value: formData.declarations.includes('dec_a') ? '✓ Confirmed' : 'Not confirmed' },
+  { label: 'CSCS electronic allotment', value: formData.declarations.includes('dec_b') ? '✓ Confirmed' : 'Not confirmed' },
+  { label: 'Issuer/Issuing Houses discretion', value: formData.declarations.includes('dec_c') ? '✓ Confirmed' : 'Not confirmed' },
+  { label: 'Amount payable attached in full', value: formData.declarations.includes('dec_d') ? '✓ Confirmed' : 'Not confirmed' },
+  { label: 'Accept smaller allotment if applicable', value: formData.declarations.includes('dec_e') ? '✓ Confirmed' : 'Not confirmed' },
+  { label: 'Read and understood the Prospectus', value: formData.declarations.includes('dec_f') ? '✓ Confirmed' : 'Not confirmed' }
 ])
 
 const cscsSummary = computed(() => [
@@ -713,6 +763,16 @@ const submitApplication = async () => {
         isSubmitting.value = false
         return
       }
+    }
+
+    // Declarations must all be checked before final submit
+    const requiredDeclarations = ['dec_a', 'dec_b', 'dec_c', 'dec_d', 'dec_e', 'dec_f']
+    const missingDecl = requiredDeclarations.find((d) => !formData.declarations.includes(d))
+    if (missingDecl) {
+      toast.error('Please confirm all declarations before submitting')
+      currentStep.value = 4
+      isSubmitting.value = false
+      return
     }
 
     if (uploadsBusy.value) {
@@ -1443,6 +1503,42 @@ select.form-input {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.25rem;
+}
+
+.declaration-box {
+  margin: 1.5rem 0 1.25rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  background: var(--bg-light);
+}
+
+.declaration-title {
+  margin: 0 0 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.declaration-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.declaration-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--text-dark);
+}
+
+.declaration-item input[type='checkbox'] {
+  margin-top: 0.15rem;
+  width: 18px;
+  height: 18px;
+  accent-color: var(--primary);
 }
 
 .review-block {
