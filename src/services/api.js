@@ -15,6 +15,10 @@ const api = axios.create({
 // Request interceptor to handle errors
 api.interceptors.request.use(
   (config) => {
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
     return config;
   },
   (error) => {
@@ -33,6 +37,7 @@ api.interceptors.response.use(
 
 // Public Offer API endpoints
 export const publicOfferAPI = {
+  adminLogin: (email, password) => api.post('/api/auth/login', { email, password }),
   // Submit application - increased timeout for file uploads and processing
   submit: (data) => api.post('/public-offers/applications', data, {
     timeout: 120000 // 2 minutes for file uploads, PDF generation, and email sending
