@@ -1,38 +1,77 @@
 <template>
   <div class="admin-page">
-    <div v-if="!isAuthed" class="card login-card">
-      <h3>Admin Login</h3>
-      <input
-        v-model="email"
-        type="email"
-        class="input"
-        placeholder="Admin email"
-        @keyup.enter="authenticate"
-      />
-      <input
-        v-model="password"
-        type="password"
-        class="input"
-        placeholder="Password"
-        @keyup.enter="authenticate"
-      />
-      <div class="login-actions">
-        <button class="btn" @click="authenticate">Login</button>
-        <span v-if="authError" class="error-text">{{ authError }}</span>
+    <div v-if="!isAuthed" class="login-shell">
+      <div class="login-card glass">
+        <div class="login-header">
+          <h2>Welcome back</h2>
+          <p>Please sign in to continue</p>
+        </div>
+        <label class="field">
+          <span>Email Address</span>
+          <input
+            v-model="email"
+            type="email"
+            class="input"
+            placeholder="you@example.com"
+            @keyup.enter="authenticate"
+          />
+        </label>
+        <label class="field">
+          <span>Password</span>
+          <input
+            v-model="password"
+            type="password"
+            class="input"
+            placeholder="Password"
+            @keyup.enter="authenticate"
+          />
+        </label>
+        <div class="login-actions">
+          <button class="btn primary" @click="authenticate" :disabled="isLoading">Continue</button>
+          <span v-if="authError" class="error-text">{{ authError }}</span>
+        </div>
+        <div class="login-meta">
+          <a class="muted">Forgot Password?</a>
+          <a class="muted">Need access? Contact admin.</a>
+        </div>
       </div>
     </div>
 
     <template v-else>
       <header class="admin-header">
         <div>
-          <h1>Applications</h1>
-          <p>Review submissions, download PDFs, receipts, and signatures.</p>
+          <h1>Admin Dashboard</h1>
+          <p>Rights Issue Submissions Management</p>
         </div>
         <div class="header-actions">
           <button class="btn" @click="exportCsv" :disabled="isLoading || !applications.length">Export CSV</button>
           <button class="btn btn-secondary" @click="logout">Logout</button>
         </div>
       </header>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div>
+            <p>Total Submissions</p>
+            <h3>{{ formatNumber(applications.length) }}</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div>
+            <p>Pending</p>
+            <h3>{{ formatNumber(pendingCount) }}</h3>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div>
+            <p>Approved</p>
+            <h3>{{ formatNumber(approvedCount) }}</h3>
+          </div>
+        </div>
+      </div>
 
       <div class="controls">
         <input
@@ -124,6 +163,8 @@ const statusFilter = ref('')
 const page = ref(1)
 const limit = ref(10)
 const totalPages = ref(1)
+const pendingCount = computed(() => applications.value.filter((a) => a.status === 'PENDING').length)
+const approvedCount = computed(() => applications.value.filter((a) => a.status === 'APPROVED').length)
 
 const password = ref('')
 const authError = ref('')
@@ -226,34 +267,32 @@ const viewPdf = (id) => {
 const exportCsv = () => {
   const rows = [
     [
-      'Reference',
-      'Account Type',
-      'Name',
+      'Name of Stockbroker',
+      "Shareholder's Bank Verification Number (BVN)",
+      "Shareholder's Clearing House Number (CHN)",
+      'CSCS Number',
+      'Phone Number',
       'Email',
-      'Phone',
-      'Shares',
-      'Amount',
-      'Stockbroker',
-      'Stockbroker Code',
-      'Status',
-      'Created At',
-      'Receipt URL',
-      'Signature URL'
+      'Unit Applied For',
+      'Amount Paid',
+      'Payment Method',
+      "Shareholder Name (Surname)",
+      "Shareholder Name (Other Names)",
+      'Shareholder Address'
     ],
     ...filtered.value.map((a) => [
-      formatRef(a.id),
-      a.account_type,
-      `${a.title} ${a.surname} ${a.first_name}`,
-      a.email,
-      a.phone,
+      a.stockbroker?.name || '',
+      a.bvn || '',
+      a.chn || '',
+      a.cscs_no || '',
+      a.phone || '',
+      a.email || '',
       formatNumber(a.shares_applied),
       formatNumber(a.amount_payable),
-      a.stockbroker?.name || '',
-      a.stockbroker?.code || a.stockbrokers_code || '',
-      a.status,
-      formatDate(a.created_at),
-      a.payment_receipt || '',
-      signatureUrl(a) || ''
+      a.payment_method || '',
+      a.surname || '',
+      `${a.first_name || ''} ${a.other_names || ''}`.trim(),
+      a.address || ''
     ])
   ]
 
@@ -286,6 +325,61 @@ const exportCsv = () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  background: linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+}
+.login-shell {
+  display: grid;
+  place-items: center;
+  min-height: 70vh;
+}
+.glass {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+}
+.login-card {
+  width: 100%;
+  max-width: 420px;
+  padding: 1.5rem;
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.login-header h2 {
+  margin: 0;
+}
+.login-header p {
+  margin: 0.25rem 0 0;
+  color: #6b7280;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: #374151;
+}
+.login-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.login-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+}
+.muted {
+  color: #6b7280;
+}
+.primary {
+  background: #a10056;
+}
+.secondary {
+  background: #fff;
+  color: #2563eb;
+  border: 1px solid #d1d5db;
 }
 .admin-header {
   display: flex;
@@ -321,6 +415,39 @@ const exportCsv = () => {
   border: 1px solid #e5e7eb;
   padding: 1rem;
   border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+.stat-card {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  background: #f9fafb;
+}
+.stat-card p {
+  margin: 0;
+  color: #6b7280;
+}
+.stat-card h3 {
+  margin: 0.1rem 0 0;
+  font-size: 1.4rem;
+}
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: #eef2ff;
+  color: #4338ca;
+  font-weight: 700;
 }
 .table-card {
   overflow: auto;
@@ -334,6 +461,12 @@ const exportCsv = () => {
   border-bottom: 1px solid #e5e7eb;
   text-align: left;
   vertical-align: top;
+}
+.table thead {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 .subtext {
   color: #6b7280;
