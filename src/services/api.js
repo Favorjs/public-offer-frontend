@@ -1,6 +1,7 @@
 // api.js
 import axios from 'axios';
 
+
 const API_BASE_URL =
   process.env.VUE_APP_API_BASE_URL || 'https://api.tipoffer.apel.com.ng/api';
 
@@ -48,6 +49,9 @@ export const publicOfferAPI = {
   
   // Get single application
   getApplication: (id) => api.get(`/public-offers/applications/${id}`),
+
+  // Get all applications
+  // getAllApplications: () => api.get('/public-offers/applications/all'),
   
   // Download PDF - CORRECTED ENDPOINT
   downloadPDF: (id) => {
@@ -77,6 +81,8 @@ export const publicOfferAPI = {
   // Get statistics
   getStatistics: () => api.get('/public-offers/statistics'),
 
+
+  
   // Get stockbrokers
   getStockbrokers: () => api.get('/public-offers/stockbrokers')
 };

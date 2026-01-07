@@ -44,34 +44,35 @@
           <p>Rights Issue Submissions Management</p>
         </div>
         <div class="header-actions">
-          <button class="btn" @click="exportCsv" :disabled="isLoading || !applications.length">Export CSV</button>
+          <button class="btn" @click="exportCsv" :disabled="isLoading || !allApplications.length">Export CSV</button>
           <button class="btn btn-secondary" @click="logout">Logout</button>
         </div>
       </header>
 
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div>
-            <p>Total Submissions</p>
-            <h3>{{ formatNumber(applications.length) }}</h3>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
-          <div>
-            <p>Pending</p>
-            <h3>{{ formatNumber(pendingCount) }}</h3>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div>
-            <p>Approved</p>
-            <h3>{{ formatNumber(approvedCount) }}</h3>
-          </div>
-        </div>
-      </div>
+   <!-- In the template section -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon">👥</div>
+    <div>
+      <p>Total Submissions</p>
+      <h3>{{ formatNumber(totalApplications) }}</h3>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">⏳</div>
+    <div>
+      <p>Pending</p>
+      <h3>{{ formatNumber(pendingCount) }}</h3>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon">✅</div>
+    <div>
+      <p>Approved</p>
+      <h3>{{ formatNumber(approvedCount) }}</h3>
+    </div>
+  </div>
+</div>
 
       <div class="controls">
         <input
@@ -95,227 +96,332 @@
       </div>
 
       <div v-if="isLoading" class="card">Loading applications...</div>
-      <div v-else-if="!filtered.length" class="card">No applications found.</div>
+      <div v-else-if="!filtered || !filtered.length" class="card">No applications found.</div>
 
-      <div v-else class="card table-card">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Ref</th>
-              <th>Name</th>
-              <th>Account Type</th>
-              <th>Shares</th>
-              <th>Amount</th>
-              <th>Stockbroker</th>
-              <th>Status</th>
-              <th>Submitted</th>
-              <th>Files</th>
-              <th>PDF</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="app in filtered" :key="app.id">
-              <td>{{ formatRef(app.id) }}</td>
-              <td>
-                {{ app.title }} {{ app.surname }} {{ app.first_name }}
-                <div class="subtext">{{ app.email }} — {{ app.phone }}</div>
-              </td>
-              <td>{{ app.account_type }}</td>
-              <td>{{ formatNumber(app.shares_applied) }}</td>
-              <td>₦{{ formatNumber(app.amount_payable) }}</td>
-              <td>
-                {{ app.stockbroker?.name || '—' }}
-                <div class="subtext">{{ app.stockbroker?.code || app.stockbrokers_code || '—' }}</div>
-              </td>
-              <td><span class="badge">{{ app.status }}</span></td>
-              <td>{{ formatDate(app.created_at) }}</td>
-              <td class="files">
-                <a v-if="app.payment_receipt" :href="app.payment_receipt" target="_blank">Receipt</a>
-                <a v-if="signatureUrl(app)" :href="signatureUrl(app)" target="_blank">Signature</a>
-              </td>
-              <td>
-                <button class="link-btn" @click="viewPdf(app.id)">View PDF</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+   <!-- In your AdminView.vue template -->
+<div v-else-if="filtered && filtered.length" class="card table-card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Ref</th>
+        <th>Name</th>
+        <th>Account Type</th>
+        <th>Shares</th>
+        <th>Amount</th>
+        <th>Stockbroker</th>
+        <th>Status</th>
+        <th>Submitted</th>
+        <th>Files</th>
+        <th>PDF</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- CHANGE: Use paginatedApplications instead of filtered -->
+      <tr v-for="app in paginatedApplications" :key="app.id">
+        <td>{{ formatRef(app.id) }}</td>
+        <td>
+          {{ app.title }} {{ app.surname }} {{ app.first_name }}
+          <div class="subtext">{{ app.email }} — {{ app.phone }}</div>
+        </td>
+        <td>{{ app.account_type }}</td>
+        <td>{{ formatNumber(app.shares_applied) }}</td>
+        <td>₦{{ formatNumber(app.amount_payable) }}</td>
+        <td>
+          {{ app.stockbroker?.name || '—' }}
+          <div class="subtext">{{ app.stockbroker?.code || app.stockbrokers_code || '—' }}</div>
+        </td>
+        <td><span class="badge">{{ app.status }}</span></td>
+        <td>{{ formatDate(app.created_at) }}</td>
+        <td class="files">
+          <a v-if="app.payment_receipt" :href="app.payment_receipt" target="_blank">Receipt</a>
+          <span v-if="app.payment_receipt && signatureUrl(app)"> • </span>
+          <a v-if="signatureUrl(app)" :href="signatureUrl(app)" target="_blank">Signature</a>
+        </td>
+        <td>
+          <button class="link-btn" @click="viewPdf(app.id)">View PDF</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
 
-        <div class="pagination">
-          <button class="btn" :disabled="page <= 1" @click="changePage(page - 1)">Prev</button>
-          <span>Page {{ page }} of {{ totalPages || 1 }}</span>
-          <button class="btn" :disabled="page >= totalPages" @click="changePage(page + 1)">Next</button>
-        </div>
-      </div>
+  <!-- Pagination controls -->
+  <div class="pagination">
+    <button class="btn" :disabled="page <= 1" @click="changePage(page - 1)">Prev</button>
+    <span>Page {{ page }} of {{ totalPages || 1 }} (Showing {{ paginatedApplications.length }} of {{ filtered.length }})</span>
+    <button class="btn" :disabled="page >= totalPages" @click="changePage(page + 1)">Next</button>
+  </div>
+</div>
     </template>
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useToast } from 'vue-toastification'
-import { publicOfferAPI } from '../services/api'
-
-const toast = useToast()
-const applications = ref([])
-const isLoading = ref(false)
-const search = ref('')
-const statusFilter = ref('')
-const page = ref(1)
-const limit = ref(10)
-const totalPages = ref(1)
-const pendingCount = computed(() => applications.value.filter((a) => a.status === 'PENDING').length)
-const approvedCount = computed(() => applications.value.filter((a) => a.status === 'APPROVED').length)
-
-const password = ref('')
-const authError = ref('')
-const isAuthed = ref(false)
-const ADMIN_KEY = import.meta.env?.VITE_ADMIN_KEY || ''
-
-const authenticate = async () => {
-  try {
-    isLoading.value = true
-    const res = await publicOfferAPI.adminLogin(email.value.trim(), password.value.trim())
-    if (res.data?.success && res.data.token) {
-      localStorage.setItem('adminToken', res.data.token)
-      isAuthed.value = true
-      authError.value = ''
-      fetchApps()
-    } else {
-      authError.value = 'Invalid credentials'
-    }
-  } catch (err) {
-    authError.value = 'Invalid credentials'
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const email = ref('')
-
-onMounted(() => {
-  const token = localStorage.getItem('adminToken')
-  if (token) {
-    isAuthed.value = true
-    fetchApps()
-  }
-})
-
-const fetchApps = async () => {
-  try {
-    isLoading.value = true
-    const res = await publicOfferAPI.getApplications({ page: page.value, limit: limit.value })
-    applications.value = res.data?.data || []
-    const pagination = res.data?.pagination || {}
-    totalPages.value = pagination.pages || 1
-  } catch (err) {
-    toast.error('Failed to load applications')
-  } finally {
-    isLoading.value = false
-  }
-}
-
-const changePage = (p) => {
-  page.value = p
-  fetchApps()
-}
-
-const logout = () => {
-  localStorage.removeItem('adminToken')
-  isAuthed.value = false
-  applications.value = []
-}
-
+  import { computed, onMounted, ref, watch } from 'vue'
+  import { useToast } from 'vue-toastification'
+  import { publicOfferAPI } from '../services/api'
+  
+  const toast = useToast()
+  
+  // Data
+  const allApplications = ref([]) // Store ALL applications
+  const isLoading = ref(false)
+  const search = ref('')
+  const statusFilter = ref('')
+  const page = ref(1)
+  const limit = ref(10)
+  const totalPages = ref(1)
+  const totalApplications = ref(0) // Total count from backend
+  
+  // Authentication
+  const password = ref('')
+  const authError = ref('')
+  const isAuthed = ref(false)
+  const ADMIN_KEY = import.meta.env?.VITE_ADMIN_KEY || ''
+  
+  // Computed properties
 const filtered = computed(() => {
-  const term = search.value.toLowerCase().trim()
-  return applications.value.filter((app) => {
-    if (statusFilter.value && app.status !== statusFilter.value) return false
-    if (!term) return true
-    const sbName = app.stockbroker?.name || ''
-    const sbCode = app.stockbroker?.code || app.stockbrokers_code || ''
-    return [
-      app.surname,
-      app.first_name,
-      app.email,
-      app.phone,
-      sbName,
-      sbCode
-    ].some((field) => (field || '').toLowerCase().includes(term))
+  const apps = allApplications.value || [];
+  const term = search.value.toLowerCase().trim();
+  return apps.filter((app) => {
+      if (statusFilter.value && app.status !== statusFilter.value) return false
+      if (!term) return true
+      const sbName = app.stockbroker?.name || ''
+      const sbCode = app.stockbroker?.code || app.stockbrokers_code || ''
+      return [
+        app.surname,
+        app.first_name,
+        app.email,
+        app.phone,
+        sbName,
+        sbCode
+      ].some((field) => (field || '').toLowerCase().includes(term))
+    })
   })
+  
+  const pendingCount = computed(() => 
+    (allApplications.value || []).filter((a) => a.status === 'PENDING').length
+  )
+  
+  const approvedCount = computed(() => 
+    (allApplications.value || []).filter((a) => a.status === 'APPROVED').length
+  )
+  
+  const paginatedApplications = computed(() => {
+  const start = (page.value - 1) * limit.value
+  const end = start + limit.value
+  return filtered.value.slice(start, end)
 })
-
-const formatNumber = (val) => {
-  if (val === undefined || val === null) return '0'
-  const num = typeof val === 'bigint' ? Number(val) : Number(val)
-  return isNaN(num) ? '0' : num.toLocaleString()
+  
+  const email = ref('')
+  
+  onMounted(() => {
+    const token = localStorage.getItem('adminToken')
+    if (token) {
+      isAuthed.value = true
+      fetchAllApps()
+    }
+  })
+  
+  // Fetch ALL applications (not paginated)
+// In AdminView.vue - Update the fetchAllApps method
+const fetchAllApps = async () => {
+  try {
+    isLoading.value = true
+    
+    // Get statistics for counts
+    const statsRes = await publicOfferAPI.getStatistics()
+    if (statsRes.data?.success) {
+      totalApplications.value = statsRes.data.data.total
+    }
+    
+    // Get ALL applications with a large limit parameter
+    const res = await publicOfferAPI.getApplications({ limit: 1000 })
+    if (res.data?.success) {
+      allApplications.value = Array.isArray(res.data.data) ? res.data.data : []
+      
+      // Calculate total pages for filtered results
+      totalPages.value = Math.ceil(filtered.value.length / limit.value)
+    } else {
+      allApplications.value = []
+    }
+    
+  } catch (err) {
+    console.error('Error fetching applications:', err)
+    toast.error('Failed to load applications')
+    allApplications.value = []
+  } finally {
+    isLoading.value = false
+  }
 }
+  
+  // If you don't have an "all applications" endpoint, you'll need to create one
+  // in your backend. Add this to your controller:
+  
+  /*
+  // In public_offers.js controller
+  getAllPublicOffersNoPagination = async(req, res)=> {
+    try {
+      const publicOffers = await prisma.publicOffer.findMany({
+        include: {
+          stockbroker: true
+        },
+        orderBy: {
+          created_at: 'desc'
+        }
+      });
+  
+      res.json({
+        success: true,
+        data: publicOffers.map(serializePublicOffer)
+      });
+  
+    } catch (error) {
+      console.error('Error fetching all public offers:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to fetch all applications',
+        error: error.message
+      });
+    }
+  }
+  */
+  
+  // Update your API service to include this method
+  /*
+  // In services/api.js
+  export const publicOfferAPI = {
+    // ... existing methods
+    getAllApplications: () => axios.get('/public-offers/all'),
+  }
+  */
+  
+  const changePage = (p) => {
+    page.value = p
+  }
+  
+  const logout = () => {
+    localStorage.removeItem('adminToken')
+    isAuthed.value = false
+    allApplications.value = []
+    totalApplications.value = 0
+  }
+  
+  const authenticate = async () => {
+    try {
+      isLoading.value = true
+      const res = await publicOfferAPI.adminLogin(email.value.trim(), password.value.trim())
+      if (res.data?.success && res.data.token) {
+        localStorage.setItem('adminToken', res.data.token)
+        isAuthed.value = true
+        authError.value = ''
+        fetchAllApps()
+      } else {
+        authError.value = 'Invalid credentials'
+      }
+    } catch (err) {
+      authError.value = 'Invalid credentials'
+    } finally {
+      isLoading.value = false
+    }
+  }
+  
+  const formatNumber = (val) => {
+    if (val === undefined || val === null) return '0'
+    const num = typeof val === 'bigint' ? Number(val) : Number(val)
+    return isNaN(num) ? '0' : num.toLocaleString()
+  }
+  
+  const formatDate = (val) => {
+    if (!val) return ''
+    return new Date(val).toLocaleString('en-GB')
+  }
+  
+  const formatRef = (id) => `TIP/PO/${String(id).padStart(6, '0')}`
+  
+  const signatureUrl = (app) => app.individual_signature || app.corporate_signature || app.joint_signature
+  
+  const viewPdf = (id) => {
+    const base = import.meta.env.VITE_APP_API_BASE_URL || ''
+    const url = `${base}/public-offers/applications/${id}/pdf`
+    window.open(url, '_blank')
+  }
+  
 
-const formatDate = (val) => {
-  if (!val) return ''
-  return new Date(val).toLocaleString('en-GB')
+  // Add this function in your script
+const formatDateForCSV = (dateString) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    // Format as YYYY-MM-DD
+    return date.toISOString().split('T')[0];
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return '';
+  }
 }
+  // Export ALL filtered applications (not just current page)
+  const exportCsv = () => {
+    const rows = [
+      [
+        'Name of Stockbroker',
+        "Shareholder's Bank Verification Number (BVN)",
+        "Shareholder's Clearing House Number (CHN)",
+        'CSCS Number',
+        'Phone Number',
+        'Email',
+        'Unit Applied For',
+        'Amount Paid',
+        'Payment Method',
+        "Shareholder Name (Surname)",
+        "Shareholder Name (Other Names)",
+        'Shareholder Address',
+        'Date Submitted'
+      ],
+      ...filtered.value.map((a) => [
+        a.stockbroker?.name || '',
+        a.bvn || '',
+        a.chn || '',
+        a.cscs_no || '',
+        a.phone || '',
+        a.email || '',
+        formatNumber(a.shares_applied),
+        formatNumber(a.amount_payable),
+        a.payment_method || '',
+        a.surname || '',
+        `${a.first_name || ''} ${a.other_names || ''}`.trim(),
+        a.address || '',
+        formatDateForCSV(a.created_at)
+      ])
+    ]
+  
+    const csv = rows.map((r) =>
+      r
+        .map((cell) => {
+          const safe = String(cell || '').replace(/"/g, '""')
+          return `"${safe}"`
+        })
+        .join(',')
+    ).join('\n')
+  
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `public-offer-applications-${new Date().toISOString().split('T')[0]}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+  
+  // Watch for filter changes to reset page
+  watch([search, statusFilter], () => {
+    page.value = 1
+    totalPages.value = Math.ceil(filtered.value.length / limit.value)
+  })
+  </script>
+  
 
-const formatRef = (id) => `TIP/PO/${String(id).padStart(6, '0')}`
-
-const signatureUrl = (app) => app.individual_signature || app.corporate_signature || app.joint_signature
-
-const viewPdf = (id) => {
-  const base = import.meta.env.VITE_APP_API_BASE_URL || ''
-  const url = `${base}/public-offers/applications/${id}/pdf`
-  window.open(url, '_blank')
-}
-
-const exportCsv = () => {
-  const rows = [
-    [
-      'Name of Stockbroker',
-      "Shareholder's Bank Verification Number (BVN)",
-      "Shareholder's Clearing House Number (CHN)",
-      'CSCS Number',
-      'Phone Number',
-      'Email',
-      'Unit Applied For',
-      'Amount Paid',
-      'Payment Method',
-      "Shareholder Name (Surname)",
-      "Shareholder Name (Other Names)",
-      'Shareholder Address'
-    ],
-    ...filtered.value.map((a) => [
-      a.stockbroker?.name || '',
-      a.bvn || '',
-      a.chn || '',
-      a.cscs_no || '',
-      a.phone || '',
-      a.email || '',
-      formatNumber(a.shares_applied),
-      formatNumber(a.amount_payable),
-      a.payment_method || '',
-      a.surname || '',
-      `${a.first_name || ''} ${a.other_names || ''}`.trim(),
-      a.address || ''
-    ])
-  ]
-
-  const csv = rows.map((r) =>
-    r
-      .map((cell) => {
-        const safe = String(cell || '').replace(/"/g, '""')
-        return `"${safe}"`
-      })
-      .join(',')
-  ).join('\n')
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', 'public-offer-applications.csv')
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(url)
-}
-</script>
 
 <style scoped>
 .admin-page {
@@ -540,6 +646,52 @@ const exportCsv = () => {
   .pagination {
     justify-content: center;
   }
+}
+
+/* Table borders */
+.table {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th, .table td {
+  border-right: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th:last-child, .table td:last-child {
+  border-right: none;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table thead {
+  background: #f1f5f9;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  border-bottom: 2px solid #d1d5db;
+}
+
+/* Make table responsive */
+.table-card {
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+/* Add alternating row colors */
+.table tbody tr:nth-child(even) {
+  background-color: #f9fafb;
+}
+
+.table tbody tr:hover {
+  background-color: #f3f4f6;
 }
 </style>
 
