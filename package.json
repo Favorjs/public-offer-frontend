@@ -10,7 +10,6 @@
     "@vueuse/core": "^13.9.0",
     "axios": "^1.13.1",
     "chart.js": "^4.5.0",
-    "cloudinary": "^2.7.0",
     "papaparse": "^5.5.3",
     "vue": "^3.5.22",
     "vue-axios": "^3.5.2",

@@ -1,12 +1,8 @@
 // api.js
 import axios from 'axios';
 
-
-const API_BASE_URL =
-  process.env.VUE_APP_API_BASE_URL || 'https://api.tipoffer.apel.com.ng/api';
-
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: 'http://localhost:1000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -16,10 +12,6 @@ const api = axios.create({
 // Request interceptor to handle errors
 api.interceptors.request.use(
   (config) => {
-    const adminToken = localStorage.getItem('adminToken');
-    if (adminToken) {
-      config.headers.Authorization = `Bearer ${adminToken}`;
-    }
     return config;
   },
   (error) => {
@@ -38,26 +30,19 @@ api.interceptors.response.use(
 
 // Public Offer API endpoints
 export const publicOfferAPI = {
-  adminLogin: (email, password) => api.post('/api/auth/login', { email, password }),
-  // Submit application - increased timeout for file uploads and processing
-  submit: (data) => api.post('/public-offers/applications', data, {
-    timeout: 120000 // 2 minutes for file uploads, PDF generation, and email sending
-  }),
+  // Submit application
+  submit: (data) => api.post('/public-offers/applications', data),
   
   // Get applications
   getApplications: (params = {}) => api.get('/public-offers/applications', { params }),
   
   // Get single application
   getApplication: (id) => api.get(`/public-offers/applications/${id}`),
-
-  // Get all applications
-  // getAllApplications: () => api.get('/public-offers/applications/all'),
   
   // Download PDF - CORRECTED ENDPOINT
   downloadPDF: (id) => {
     return api.get(`/public-offers/applications/${id}/pdf`, {
-      responseType: 'blob',
-      timeout: 60000 // 1 minute for PDF generation and download
+      responseType: 'blob'
     }).then(response => {
       // Create download link
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
@@ -81,8 +66,6 @@ export const publicOfferAPI = {
   // Get statistics
   getStatistics: () => api.get('/public-offers/statistics'),
 
-
-  
   // Get stockbrokers
   getStockbrokers: () => api.get('/public-offers/stockbrokers')
 };
