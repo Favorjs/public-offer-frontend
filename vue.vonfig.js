@@ -6,7 +6,7 @@ module.exports = defineConfig({
     port: 1010,
     proxy: {
       '/api': {
-        target: 'http://localhost:1000',
+        target: 'https://api.tipoffer.apel.com.ng',
         changeOrigin: true
       }
     }
