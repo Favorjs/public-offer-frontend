@@ -120,7 +120,7 @@
       <tr v-for="app in paginatedApplications" :key="app.id">
         <td>{{ formatRef(app.id) }}</td>
         <td>
-          {{ app.title }} {{ app.surname }} {{ app.first_name }}
+          {{ app.title }} {{ app.surname }} {{ app.first_name }} {{ app.other_names }}
           <div class="subtext">{{ app.email }} — {{ app.phone }}</div>
         </td>
         <td>{{ app.account_type }}</td>
