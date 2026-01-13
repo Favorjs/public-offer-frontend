@@ -176,7 +176,7 @@
   const password = ref('')
   const authError = ref('')
   const isAuthed = ref(false)
-  const ADMIN_KEY = import.meta.env?.VITE_ADMIN_KEY || ''
+  const ADMIN_KEY = process.env.VUE_APP_ADMIN_KEY || ''
   
   // Computed properties
 const filtered = computed(() => {
