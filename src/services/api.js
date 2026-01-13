@@ -1,8 +1,18 @@
 // api.js
 import axios from 'axios';
 
+let baseUrl = process.env.VUE_APP_API_BASE_URL || 'http://localhost:1000/api';
+// Ensure base URL doesn't end with a slash for consistency
+if (baseUrl.endsWith('/')) {
+  baseUrl = baseUrl.slice(0, -1);
+}
+// Ensure base URL ends with /api if it doesn't already
+if (!baseUrl.toLowerCase().endsWith('/api')) {
+  baseUrl += '/api';
+}
+
 const api = axios.create({
-  baseURL: process.env.VUE_APP_API_BASE_URL || 'http://localhost:1000/api',
+  baseURL: baseUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
