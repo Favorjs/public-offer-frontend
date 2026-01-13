@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://api.tipoffer.apel.com.ng/api',
+  baseURL: import.meta.env.VITE_APP_API_BASE_URL || 'http://localhost:1000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,6 +12,10 @@ const api = axios.create({
 // Request interceptor to handle errors
 api.interceptors.request.use(
   (config) => {
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
