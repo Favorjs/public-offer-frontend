@@ -309,7 +309,7 @@ const fetchAllApps = async () => {
   const authenticate = async () => {
     try {
       isLoading.value = true
-      const res = await publicOfferAPI.adminLogin(email.value.trim(), password.value.trim())
+      const res = await publicOfferAPI.adminLogin(email.value.trim(), password.value)
       if (res.data?.success && res.data.token) {
         localStorage.setItem('adminToken', res.data.token)
         isAuthed.value = true

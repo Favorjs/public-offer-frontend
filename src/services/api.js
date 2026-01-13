@@ -32,13 +32,13 @@ api.interceptors.response.use(
 export const publicOfferAPI = {
   // Submit application
   submit: (data) => api.post('/public-offers/applications', data),
-  
+
   // Get applications
   getApplications: (params = {}) => api.get('/public-offers/applications', { params }),
-  
+
   // Get single application
   getApplication: (id) => api.get(`/public-offers/applications/${id}`),
-  
+
   // Download PDF - CORRECTED ENDPOINT
   downloadPDF: (id) => {
     return api.get(`/public-offers/applications/${id}/pdf`, {
@@ -51,23 +51,27 @@ export const publicOfferAPI = {
       link.setAttribute('download', `public-offer-application-${id}.pdf`);
       document.body.appendChild(link);
       link.click();
-      
+
       // Clean up
       window.URL.revokeObjectURL(url);
       document.body.removeChild(link);
-      
+
       return response;
     });
   },
-  
+
   // Update status
   updateStatus: (id, status) => api.patch(`/public-offers/applications/${id}/status`, { status }),
-  
+
   // Get statistics
   getStatistics: () => api.get('/public-offers/statistics'),
 
   // Get stockbrokers
-  getStockbrokers: () => api.get('/public-offers/stockbrokers')
+  getStockbrokers: () => api.get('/public-offers/stockbrokers'),
+
+  // Admin authentication
+  adminLogin: (email, password) => api.post('/auth/login', { email, password }),
+  adminRegister: (email, password) => api.post('/auth/register', { email, password })
 };
 
 export default api;
