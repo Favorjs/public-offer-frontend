@@ -74,6 +74,20 @@ export const publicOfferAPI = {
     });
   },
 
+ viewPDF: async (id) => {
+    try {
+      const response = await api.get(`/public-offers/${id}/view`, {
+        responseType: 'blob'
+      });
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const blobUrl = URL.createObjectURL(blob);
+      window.open(blobUrl, '_blank');
+    } catch (error) {
+      console.error('Error viewing PDF:', error);
+      throw error;
+    }
+  },
+
   // Update status
   updateStatus: (id, status) => api.patch(`/public-offers/applications/${id}/status`, { status }),
 

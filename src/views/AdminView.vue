@@ -109,6 +109,7 @@
         <th>Shares</th>
         <th>Amount</th>
         <th>Stockbroker</th>
+        <th>Bank Name</th>
         <th>Status</th>
         <th>Submitted</th>
         <th>Files</th>
@@ -130,6 +131,7 @@
           {{ app.stockbroker?.name || '—' }}
           <div class="subtext">{{ app.stockbroker?.code || app.stockbrokers_code || '—' }}</div>
         </td>
+        <td>{{ app.bank_name || '—' }}</td>
         <td><span class="badge">{{ app.status }}</span></td>
         <td>{{ formatDate(app.created_at) }}</td>
         <td class="files">
@@ -339,15 +341,18 @@ const fetchAllApps = async () => {
   const formatRef = (id) => `TIP/PO/${String(id).padStart(6, '0')}`
   
   const signatureUrl = (app) => app.individual_signature || app.corporate_signature || app.joint_signature
-  
-  const viewPdf = (id) => {
-    const base = import.meta.env.VITE_APP_API_BASE_URL || ''
-    const url = `${base}/public-offers/applications/${id}/pdf`
-    window.open(url, '_blank')
-  }
-  
 
-  // Add this function in your script
+
+
+  const viewPdf = (id) => {
+  // Use the API method
+  publicOfferAPI.viewPDF(id);
+  
+  // OR use direct approach:
+  // const base = import.meta.env.VITE_APP_API_BASE_URL || window.location.origin;
+  // const url = `${base}/api/public-offers/applications/${id}/pdf`;
+  // window.open(url, '_blank');
+}
 const formatDateForCSV = (dateString) => {
   if (!dateString) return '';
   try {
@@ -375,6 +380,7 @@ const formatDateForCSV = (dateString) => {
         "Shareholder Name (Surname)",
         "Shareholder Name (Other Names)",
         'Shareholder Address',
+        'Bank Name',
         'Date Submitted'
       ],
       ...filtered.value.map((a) => [
@@ -390,6 +396,7 @@ const formatDateForCSV = (dateString) => {
         a.surname || '',
         `${a.first_name || ''} ${a.other_names || ''}`.trim(),
         a.address || '',
+        a.bank_name || '',
         formatDateForCSV(a.created_at)
       ])
     ]
