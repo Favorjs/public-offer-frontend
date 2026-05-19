@@ -381,6 +381,7 @@ const formatDateForCSV = (dateString) => {
         "Shareholder Name (Other Names)",
         'Shareholder Address',
         'Bank Name',
+        'Account Number',
         'Date Submitted'
       ],
       ...filtered.value.map((a) => [
@@ -397,6 +398,7 @@ const formatDateForCSV = (dateString) => {
         `${a.first_name || ''} ${a.other_names || ''}`.trim(),
         a.address || '',
         a.bank_name || '',
+        a.account_number || '',
         formatDateForCSV(a.created_at)
       ])
     ]
